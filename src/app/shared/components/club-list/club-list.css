@@ -1,0 +1,49 @@
+.club-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  /* gap-5 */
+  padding: 1.25rem;
+  /* p-5 */
+  background-color: var(--color-charcoal-card);
+  /* bg-charcoal-card */
+  border-radius: 1rem;
+  /* rounded-2xl */
+  border: 1px solid var(--color-charcoal-border);
+  /* border border-charcoal-border */
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  /* shadow-soft */
+  text-align: left;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.club-card:hover {
+  border-color: rgba(var(--color-charcoal-border-rgb), 0.8);
+  /* border-charcoal-border/80 */
+  background-color: rgba(var(--color-charcoal-border-rgb), 0.2);
+  /* bg-charcoal-border/20 */
+}
+
+/* Estado seleccionado (Active) */
+.selected-club {
+  border-width: 2px;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+  /* shadow-diffused */
+  background-color: var(--color-charcoal-card);
+  transform: scale(1.02);
+}
+
+.selected-club p:first-child {
+  color: var(--color-primary);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

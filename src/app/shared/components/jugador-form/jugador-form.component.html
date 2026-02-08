@@ -1,0 +1,210 @@
+<main class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 overflow-hidden">
+  <header
+    class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-8 h-16 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-4">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-slate-50">Nueva Inscripción de Jugador</h2>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="onFinalize()"
+        class="px-5 py-2 text-sm font-bold text-white bg-primary hover:bg-blue-700 rounded-lg shadow-lg flex items-center gap-2 cursor-pointer">
+        Finalizar Registro <span class="material-symbols-outlined text-sm">check_circle</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-slate-950 custom-scrollbar">
+    <div class="max-w-7xl mx-auto">
+      <form class="grid grid-cols-12 gap-6 pb-12">
+
+        <div class="col-span-12 lg:col-span-8 space-y-6">
+
+          <section class="form-section-card">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary text-xl">badge</span>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 uppercase text-sm tracking-wide">Datos Personales
+                del Jugador</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">DNI / Documento</span>
+                <input class="form-input-custom" placeholder="Ej: 35123456" type="text" name="dni">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Apellidos</span>
+                <input class="form-input-custom" placeholder="Ej: Pérez" type="text" name="apellidos">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Nombres</span>
+                <input class="form-input-custom" placeholder="Ej: Juan Ignacio" type="text" name="nombres">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Fecha de
+                  Nacimiento</span>
+                <input class="form-input-custom" type="date" name="birthDate" [(ngModel)]="birthDate"
+                  (ngModelChange)="onDateChange($event)">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Género</span>
+                <select class="form-input-custom" name="genero">
+                  <option>Masculino</option>
+                  <option>Femenino</option>
+                </select>
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Nacionalidad</span>
+                <select class="form-input-custom" name="nacionalidad">
+                  <option>Argentina</option>
+                  <option>Bolivia</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section-card">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary text-xl">sports_handball</span>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 uppercase text-sm tracking-wide">Información
+                Federativa</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Club
+                  Perteneciente</span>
+                <select class="form-input-custom" name="club">
+                  <option *ngFor="let club of clubs">{{club}}</option>
+                </select>
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Categoría</span>
+                <select class="form-input-custom" name="categoria" [(ngModel)]="selectedCategory">
+                  <option *ngFor="let cat of categoriesList">{{cat}}</option>
+                </select>
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 ml-1">Tipo de Ficha</span>
+                <select class="form-input-custom" name="tipoFicha">
+                  <option>Jugador Activo</option>
+                  <option>Entrenador</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section-card">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary text-xl">cloud_upload</span>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 uppercase text-sm tracking-wide">Documentación
+                Obligatoria</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="drop-zone-custom">
+                <span
+                  class="material-symbols-outlined text-slate-400 dark:text-slate-600 text-3xl mb-2">medical_services</span>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Certificado Médico Anual</p>
+                <p class="text-[10px] text-slate-400 mt-1">Arrastre o haga clic para subir (PDF, JPG)</p>
+                <input class="absolute inset-0 opacity-0 cursor-pointer" type="file">
+              </div>
+              <div class="drop-zone-custom">
+                <span
+                  class="material-symbols-outlined text-slate-400 dark:text-slate-600 text-3xl mb-2">photo_camera</span>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Foto del DNI (Frente)</p>
+                <p class="text-[10px] text-slate-400 mt-1">Asegúrese que la imagen sea nítida</p>
+                <input class="absolute inset-0 opacity-0 cursor-pointer" type="file">
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+
+          <section class="form-section-card">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary text-xl">contact_phone</span>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 uppercase text-sm tracking-wide">Contacto y
+                Tutoría</h3>
+            </div>
+            <div class="space-y-4">
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Email Principal</span>
+                <input class="form-input-custom" placeholder="correo@ejemplo.com" type="email" name="email">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">WhatsApp del Jugador</span>
+                <div class="flex gap-2">
+                  <div
+                    class="w-14 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-500">
+                    +54</div>
+                  <input class="form-input-custom flex-1" placeholder="388 1234567" type="tel" name="whatsapp">
+                </div>
+              </label>
+
+              <div
+                class="p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/10 dark:border-primary/20 space-y-3">
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" name="isMinor" [(ngModel)]="isMinor"
+                    class="size-4 rounded border-slate-300 dark:border-slate-700 text-primary bg-transparent">
+                  <label class="text-xs font-bold text-slate-700 dark:text-slate-200">¿Es menor de edad?</label>
+                </div>
+                <div *ngIf="isMinor" class="flex flex-col">
+                  <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 ml-1 uppercase">Teléfono
+                    del Tutor Responsable</span>
+                  <div class="flex gap-2">
+                    <div
+                      class="w-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-500">
+                      +54</div>
+                    <input class="form-input-custom flex-1 bg-white dark:bg-slate-900" placeholder="388 7654321"
+                      type="tel" name="tutorPhone">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section-card">
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-symbols-outlined text-primary text-xl">monitoring</span>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 uppercase text-sm tracking-wide">Ficha Física</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-5">
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Peso (kg)</span>
+                <input class="form-input-custom" placeholder="70.5" type="number" name="peso">
+              </label>
+              <label class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Altura (cm)</span>
+                <input class="form-input-custom" placeholder="175" type="number" name="altura">
+              </label>
+            </div>
+            <div class="space-y-3">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Mano Hábil</span>
+              <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex">
+                <button type="button" (click)="onHandChange('Derecha')"
+                  [class]="selectedHand === 'Derecha' ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'"
+                  class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer">Derecha</button>
+                <button type="button" (click)="onHandChange('Izquierda')"
+                  [class]="selectedHand === 'Izquierda' ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'"
+                  class="flex-1 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer">Izquierda</button>
+                <button type="button" (click)="onHandChange('Ambidiestra')"
+                  [class]="selectedHand === 'Ambidiestra' ? 'bg-white dark:bg-slate-700 text-primary dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'"
+                  class="flex-1 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer">Ambidiestra</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="p-5 bg-slate-900 dark:bg-slate-900 rounded-xl text-white border border-slate-800">
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-yellow-400">info</span>
+              <div>
+                <p class="text-xs font-bold mb-1">Nota importante</p>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Una vez completado el registro, la ficha será auditada por la Federación. El jugador no estará
+                  habilitado para partidos oficiales hasta la aprobación final.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>

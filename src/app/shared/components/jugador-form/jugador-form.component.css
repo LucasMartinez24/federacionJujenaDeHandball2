@@ -1,0 +1,97 @@
+/* Contenedor de las secciones */
+.form-section-card {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Input con padding lateral para que el placeholder no toque el borde */
+.form-input-custom {
+  width: 100%;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f1f5f9;
+  font-size: 0.875rem;
+  color: #0f172a;
+  height: 3rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.form-input-custom::placeholder {
+  color: #94a3b8;
+}
+
+.form-input-custom:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-section-card {
+    background-color: #0f172a;
+    border-color: #1e293b;
+  }
+
+  .form-input-custom {
+    border-color: #334155;
+    background-color: #1e293b;
+    color: #f1f5f9;
+  }
+
+  .form-input-custom::placeholder {
+    color: #64748b;
+  }
+}
+
+/* Estilo para los selectores (dropdowns) en dark mode */
+select.form-input-custom option {
+  background-color: #fff;
+  color: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  select.form-input-custom option {
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+}
+
+.drop-zone-custom {
+  position: relative;
+  cursor: pointer;
+  border: 2px dashed #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.drop-zone-custom:hover {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .drop-zone-custom {
+    border-color: #334155;
+  }
+
+  .drop-zone-custom:hover {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.10);
+  }
+}

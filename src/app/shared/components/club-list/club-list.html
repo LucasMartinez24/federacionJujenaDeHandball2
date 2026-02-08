@@ -1,0 +1,217 @@
+<div class="flex flex-col h-full bg-background-light dark:bg-slate-950">
+  <div class="p-8">
+    <div class="text-slate-50">
+      <h2 class="text-2xl font-bold tracking-tight mb-2">Gestión de Clubes</h2>
+      <p class="text-slate-400">Administra todos los clubes y sus plantillas</p>
+    </div>
+  </div>
+
+  <div class="flex-1 flex flex-col min-w-0 bg-charcoal">
+
+    <main class="flex-1 overflow-y-auto bg-charcoal p-10">
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-4 gap-8 mb-10">
+        <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
+          <div class="flex items-center justify-between">
+            <p class="text-gray-300 text-sm font-medium">Total de Clubes</p>
+            <span class="material-symbols-outlined text-primary bg-primary/10 p-2.5 rounded-xl">shield</span>
+          </div>
+          <p class="text-3xl font-bold mt-4 text-gray-100">{{ clubes.length }}</p>
+          <p class="text-xs text-green-400/70 font-medium mt-2 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">trending_up</span> Activo
+          </p>
+        </div>
+
+        <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
+          <div class="flex items-center justify-between">
+            <p class="text-gray-300 text-sm font-medium">Jugadores Activos</p>
+            <span class="material-symbols-outlined text-emerald-400/80 bg-emerald-400/10 p-2.5 rounded-xl">groups</span>
+          </div>
+          <p class="text-3xl font-bold mt-4 text-gray-100">{{ getTotalAllJugadores() }}</p>
+          <p class="text-xs text-gray-400 font-medium mt-2">Total de la federación</p>
+        </div>
+
+        <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
+          <div class="flex items-center justify-between">
+            <p class="text-gray-300 text-sm font-medium">Registros Pendientes</p>
+            <span
+              class="material-symbols-outlined text-amber-400/80 bg-amber-400/10 p-2.5 rounded-xl">hourglass_empty</span>
+          </div>
+          <p class="text-3xl font-bold mt-4 text-gray-100">0</p>
+          <p class="text-xs text-amber-400/70 font-medium mt-2">Requiere revisión</p>
+        </div>
+
+        <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
+          <div class="flex items-center justify-between">
+            <p class="text-gray-300 text-sm font-medium">Competencias Activas</p>
+            <span class="material-symbols-outlined text-indigo-400/80 bg-indigo-400/10 p-2.5 rounded-xl">stadium</span>
+          </div>
+          <p class="text-3xl font-bold mt-4 text-gray-100">0</p>
+          <p class="text-xs text-gray-400 font-medium mt-2">En todas las divisiones</p>
+        </div>
+      </div>
+
+      <!-- Clubs Grid and Details -->
+      <div class="grid grid-cols-12 gap-10">
+        <!-- Clubs Sidebar -->
+        <div class="col-span-3 flex flex-col gap-4 overflow-y-auto pr-2 hide-scrollbar">
+          <h3 class="text-[11px] font-bold text-gray-300 uppercase tracking-[0.2em] px-2 mb-2">Clubes Afiliados
+          </h3>
+          <button *ngFor="let club of clubes; let first = first" (click)="selectClub(club)"
+            [class.border-2]="selectedClub?.id === club.id" [class.border-primary]="selectedClub?.id === club.id"
+            [class.shadow-diffused]="selectedClub?.id === club.id"
+            class="flex items-center gap-5 p-5 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 hover:bg-gray-900/30 transition-all">
+            <div
+              class="w-14 h-14 rounded-xl bg-gray-700/50 flex items-center justify-center p-2 border border-gray-600 flex-shrink-0">
+              <span class="material-symbols-outlined text-2xl text-primary">sports_handball</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-gray-100 truncate">{{ club.nombre }}</p>
+              <p class="text-[11px] text-gray-400 truncate mt-1">{{ getTotalJugadores(club.id) }} jugadores</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Club Details -->
+        <div class="col-span-9 space-y-10">
+          <div *ngIf="selectedClub" class="bg-charcoal-card rounded-2xl p-8 shadow-diffused border border-gray-600">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-8">
+                <div
+                  class="w-28 h-28 rounded-2xl bg-charcoal flex items-center justify-center border border-gray-700 overflow-hidden shadow-inner">
+                  <span class="material-symbols-outlined text-6xl text-primary/30">sports_handball</span>
+                </div>
+                <div>
+                  <h2 class="text-3xl font-bold text-gray-100 tracking-tight">{{ selectedClub.nombre }}</h2>
+                  <div class="flex items-center gap-6 mt-3">
+                    <div class="flex items-center gap-1.5 text-gray-400 text-sm">
+                      <span class="material-symbols-outlined text-xl">location_on</span>
+                      <span>San Salvador de Jujuy, Argentina</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-2.5 px-4 py-1.5 bg-green-500/10 rounded-full text-[10px] font-bold text-green-400 tracking-wider border border-green-500/30">
+                      <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                      FEDERACIÓN ACTIVA
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-12 mt-6">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">ID del Club</p>
+                      <p class="text-[15px] font-semibold text-gray-100">{{ selectedClub.id }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">Total de Jugadores
+                      </p>
+                      <p class="text-[15px] font-semibold text-gray-100">{{ getTotalJugadores(selectedClub.id) }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 min-w-[180px]">
+                <button
+                  class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary/20">
+                  <span class="material-symbols-outlined text-xl">person_add</span>
+                  Añadir Jugador
+                </button>
+                <button
+                  class="bg-charcoal border border-gray-600 hover:bg-gray-900/50 hover:border-gray-500 text-gray-300 text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
+                  <span class="material-symbols-outlined text-xl">ios_share</span>
+                  Exportar Plantilla
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Players Table -->
+          <div class="bg-charcoal-card rounded-2xl shadow-diffused border border-gray-600 overflow-hidden">
+            <div class="px-8 py-6 border-b border-gray-600 flex items-center justify-between">
+              <h3 class="font-bold text-xl text-gray-100">Jugadores Registrados</h3>
+              <div class="flex items-center gap-5">
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 text-xl">search</span>
+                  <input
+                    class="pl-11 pr-4 py-2.5 text-xs bg-charcoal border border-gray-600 rounded-xl w-60 text-gray-100 focus:ring-1 focus:ring-primary/40 placeholder-gray-500"
+                    placeholder="Filtrar plantilla..." type="text" />
+                </div>
+                <button class="text-gray-400 hover:text-primary transition-colors">
+                  <span class="material-symbols-outlined text-2xl">filter_list</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead
+                  class="bg-charcoal text-gray-300 text-[11px] uppercase tracking-[0.15em] font-bold border-b border-gray-600">
+                  <tr>
+                    <th class="px-8 py-5">Foto</th>
+                    <th class="px-8 py-5">Nombre Completo</th>
+                    <th class="px-8 py-5">Categoría</th>
+                    <th class="px-8 py-5">DNI</th>
+                    <th class="px-8 py-5">Estado</th>
+                    <th class="px-8 py-5 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                  <tr *ngFor="let jugador of selectedClub?.jugadores" class="hover:bg-gray-900/30 transition-colors">
+                    <td class="px-8 py-5">
+                      <div
+                        class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-gray-700 text-primary font-bold text-sm">
+                        {{ getInitials(jugador.nombre) }}
+                      </div>
+                    </td>
+                    <td class="px-8 py-5">
+                      <p class="text-sm font-bold text-gray-100">{{ jugador.nombre }}</p>
+                    </td>
+                    <td class="px-8 py-5">
+                      <span class="text-xs font-medium text-gray-400">{{ jugador.categoria }}</span>
+                    </td>
+                    <td class="px-8 py-5">
+                      <p class="text-xs font-mono text-gray-400">{{ jugador.dni }}</p>
+                    </td>
+                    <td class="px-8 py-5">
+                      <span
+                        class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-wide border border-emerald-500/30">ACTIVO</span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                      <div class="flex items-center justify-end gap-2">
+                        <button
+                          class="p-2 text-gray-400 hover:text-primary transition-colors hover:bg-gray-900/50 rounded-lg"
+                          title="Editar">
+                          <span class="material-symbols-outlined text-xl">edit</span>
+                        </button>
+                        <button
+                          class="p-2 text-gray-400 hover:text-gray-200 transition-colors hover:bg-gray-900/50 rounded-lg"
+                          title="Más opciones">
+                          <span class="material-symbols-outlined text-xl">more_vert</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              class="px-8 py-6 border-t border-gray-600 flex items-center justify-between text-xs text-gray-400 font-medium">
+              <p>Mostrando {{ selectedClub?.jugadores?.length || 0 }} jugadores</p>
+              <div class="flex items-center gap-3">
+                <button
+                  class="p-2 rounded-lg border border-gray-600 hover:bg-gray-900/50 hover:text-gray-300 transition-colors disabled:opacity-30"
+                  title="Anterior">
+                  <span class="material-symbols-outlined text-base leading-none">chevron_left</span>
+                </button>
+                <button class="px-3.5 py-1.5 rounded-lg bg-primary text-white font-bold">1</button>
+                <button
+                  class="p-2 rounded-lg border border-gray-600 hover:bg-gray-900/50 hover:text-gray-300 transition-colors"
+                  title="Siguiente">
+                  <span class="material-symbols-outlined text-base leading-none">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

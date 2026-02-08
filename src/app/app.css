@@ -1,0 +1,37 @@
+/* Asegura que el body siempre use el color oscuro si la clase .dark está activa */
+body {
+  background-color: white;
+  color: #0f172a;
+  font-family: 'Lexend', sans-serif;
+}
+
+body.dark {
+  background-color: #020617;
+  color: #f1f5f9;
+}
+
+/* Scrollbar personalizado para Jujuy Handball */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e1;
+}
+
+body.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #1e293b;
+}
+
+body.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #334155;
+}
