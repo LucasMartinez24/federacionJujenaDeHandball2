@@ -1,105 +1,84 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface Jugador {
-  id: number;
-  nombre: string;
+  id: string;
   dni: string;
-  categoria: string;
-  anio: string;
-  clubId: number;
+  nombreCompleto: string;
+  fechaNacimiento: string;
+  clubId: string;
+  // Campos nuevos
+  genero?: string;
+  nacionalidad?: string;
+  email?: string;
+  whatsapp?: string;
+  tutorPhone?: string;
+  peso?: number | null;
+  altura?: number | null;
+  manoHabil?: string;
+  tipoFicha?: string;
+  categoria?: string;
+  anio?: string; // Cambiamos a string si así lo tenías antes, o number si prefieres
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class JugadoresService {
-  private jugadoresSubject = new BehaviorSubject<Jugador[]>([
-    {
-      id: 1,
-      nombre: 'Lucas Martinez',
-      dni: '44.769.386',
-      categoria: 'Primera',
-      anio: '2021',
-      clubId: 1,
-    },
-    {
-      id: 2,
-      nombre: 'Rodrigo Calvetti',
-      dni: '39.876.543',
-      categoria: 'Primera',
-      anio: '2019',
-      clubId: 1,
-    },
-    {
-      id: 3,
-      nombre: 'Facundo Pardo',
-      dni: '45.432.123',
-      categoria: 'Juvenil',
-      anio: '2023',
-      clubId: 1,
-    },
-    {
-      id: 4,
-      nombre: 'Juan Perez',
-      dni: '40.123.456',
-      categoria: 'Primera',
-      anio: '2020',
-      clubId: 2,
-    },
-  ]);
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:3000/api/jugadores';
+  private jugadoresSubject = new BehaviorSubject<Jugador[]>([]);
+  jugadores$ = this.jugadoresSubject.asObservable();
 
-  public jugadores$ = this.jugadoresSubject.asObservable();
+  // Obtener todos los jugadores del club logueado
+  // (El backend filtra por club usando el Token de Auth)
+  getJugadores(clubId?: string): Observable<Jugador[]> {
+    // Si tu API filtra por clubId en la URL: `${this.apiUrl}?clubId=${clubId}`
+    // Si el backend ya sabe quién es el club por el TOKEN, solo usa this.apiUrl
+    const url = clubId ? `${this.apiUrl}?clubId=${clubId}` : this.apiUrl;
 
-  constructor() {
-    this.loadJugadoresFromStorage();
+    return this.http.get<Jugador[]>(url).pipe(
+      tap((jugadores) => {
+        // Esto es lo que hace que el Dashboard se entere de los cambios
+        this.jugadoresSubject.next(jugadores);
+      }),
+    );
+  }
+
+  // Corregimos el tap del delete
+  deleteJugador(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        const currentJugadores = this.jugadoresSubject.value;
+        this.jugadoresSubject.next(currentJugadores.filter((jugador) => jugador.id !== id));
+      }),
+    );
+  }
+
+  // Corregimos el tap del update
+  updateJugador(id: string, jugador: Partial<Jugador>): Observable<Jugador> {
+    return this.http.put<Jugador>(`${this.apiUrl}/${id}`, jugador).pipe(
+      tap((jugadorActualizado) => {
+        this.jugadoresSubject.next(
+          this.jugadoresSubject.value.map(
+            (item) => (item.id === id ? jugadorActualizado : item), // Comparación de strings
+          ),
+        );
+      }),
+    );
   }
 
   getAllJugadores(): Jugador[] {
     return this.jugadoresSubject.value;
   }
 
-  getJugadoresByClub(clubId: number): Jugador[] {
-    return this.jugadoresSubject.value.filter((j) => j.clubId === clubId);
-  }
-
-  addJugador(jugador: Omit<Jugador, 'id'>): void {
-    const jugadores = this.jugadoresSubject.value;
-    const newJugador: Jugador = {
-      ...jugador,
-      id: Math.max(...jugadores.map((j) => j.id), 0) + 1,
-    };
-    this.jugadoresSubject.next([...jugadores, newJugador]);
-    this.saveJugadoresFromStorage();
-  }
-
-  deleteJugador(id: number): void {
-    const jugadores = this.jugadoresSubject.value.filter((j) => j.id !== id);
-    this.jugadoresSubject.next(jugadores);
-    this.saveJugadoresFromStorage();
-  }
-
-  updateJugador(id: number, jugador: Partial<Jugador>): void {
-    const jugadores = this.jugadoresSubject.value.map((j) =>
-      j.id === id ? { ...j, ...jugador } : j,
+  // Agregar un jugador
+  addJugador(jugador: Omit<Jugador, 'id'>): Observable<Jugador> {
+    return this.http.post<Jugador>(this.apiUrl, jugador).pipe(
+      tap((nuevoJugador) => {
+        this.jugadoresSubject.next([...this.jugadoresSubject.value, nuevoJugador]);
+      }),
     );
-    this.jugadoresSubject.next(jugadores);
-    this.saveJugadoresFromStorage();
-  }
-
-  private saveJugadoresFromStorage(): void {
-    localStorage.setItem('jugadores', JSON.stringify(this.jugadoresSubject.value));
-  }
-
-  private loadJugadoresFromStorage(): void {
-    const jugadoresJson = localStorage.getItem('jugadores');
-    if (jugadoresJson) {
-      try {
-        const jugadores = JSON.parse(jugadoresJson);
-        this.jugadoresSubject.next(jugadores);
-      } catch (e) {
-        console.error('Error al cargar jugadores del storage', e);
-      }
-    }
   }
 }

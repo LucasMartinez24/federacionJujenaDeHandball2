@@ -1,0 +1,114 @@
+/* src/app/shared/components/club-create/club-create.css */
+
+:host {
+  display: block;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* --- Animaciones --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- Inputs --- */
+.form-input-new {
+  width: 100%;
+  background-color: #1A1A1D;
+  border: 1px solid #333338;
+  border-radius: 1.25rem;
+  padding: 1.1rem 1.5rem;
+  font-size: 16px;
+  color: #FFFFFF !important;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ESTADO FOCUS: Brillo azul y borde resaltado */
+.form-input-new:focus {
+  background-color: #242429;
+  /* Un poco más claro al enfocar */
+  border-color: #5c7cfa;
+  /* Color primary */
+  box-shadow: 0 0 0 4px rgba(92, 124, 250, 0.15);
+  /* Glow exterior suave */
+}
+
+.input-with-icon-left {
+  padding-left: 3.8rem !important;
+}
+
+.input-with-icon-right {
+  padding-right: 3.5rem !important;
+}
+
+/* --- Labels --- */
+.form-label-new {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94949E;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  margin-bottom: 10px;
+  padding-left: 5px;
+  transition: color 0.3s ease;
+}
+
+/* El label cambia a color primary cuando el input dentro de su grupo tiene focus */
+.group-input:focus-within .form-label-new {
+  color: #5c7cfa;
+  text-shadow: 0 0 8px rgba(92, 124, 250, 0.3);
+}
+
+/* El icono también cambia de color */
+.group-input:focus-within .input-icon-span {
+  color: #5c7cfa !important;
+  opacity: 1 !important;
+}
+
+/* Cuando el campo es VÁLIDO y ha sido tocado (dirty) */
+.form-input-new.ng-dirty.ng-valid {
+  border-color: #2ecc71 !important;
+  /* Esmeralda */
+  box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+}
+
+/* Cuando el campo es INVÁLIDO y ha sido tocado */
+.form-input-new.ng-dirty.ng-invalid {
+  border-color: #e74c3c !important;
+  /* Alizarina (Rojo) */
+  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+}
+
+/* Ajuste para que el Label también reaccione al error */
+.group-input:has(.ng-dirty.ng-invalid) .form-label-new {
+  color: #e74c3c;
+}
+
+/* Ajuste para que el Label reaccione al éxito */
+.group-input:has(.ng-dirty.ng-valid) .form-label-new {
+  color: #2ecc71;
+}
+
+/* El foco "Primary" (azul) solo se aplica si no hay error/éxito marcado
+   o podés dejar que el azul mande siempre al estar encima. */
+.form-input-new:focus {
+  background-color: #242429;
+  border-color: #5c7cfa;
+  box-shadow: 0 0 0 4px rgba(92, 124, 250, 0.15);
+}

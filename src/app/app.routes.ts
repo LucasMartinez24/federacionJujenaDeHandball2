@@ -33,6 +33,13 @@ export const routes: Routes = [
     title: 'Clubes - Federación',
   },
   {
+    path: 'club-create',
+    loadComponent: () =>
+      import('./shared/components/club-create/club-create').then((m) => m.ClubCreate),
+    canActivate: [adminGuard],
+    title: 'Crear Club - Federación',
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

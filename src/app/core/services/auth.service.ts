@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 
 export interface User {
-  id: number;
+  id: string;
   username: string;
-  email: string;
-  role: 'admin' | 'user';
-  clubId?: number;
-  clubNombre?: string;
+  nombre: string;
+  role: 'admin' | 'user'; // <--- Debe llamarse igual
+  siglas?: string;
 }
 
 export interface LoginCredentials {
@@ -19,102 +19,64 @@ export interface LoginCredentials {
   providedIn: 'root',
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:3000/api/auth';
+
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-
-  // Usuarios predefinidos con clubes asignados
-  private users: { username: string; password: string; user: User }[] = [
-    {
-      username: 'admin',
-      password: 'admin123',
-      user: {
-        id: 1,
-        username: 'admin',
-        email: 'admin@handball.com',
-        role: 'admin',
-      },
-    },
-    {
-      username: 'ciaf',
-      password: 'ciaf123',
-      user: {
-        id: 2,
-        username: 'ciaf',
-        email: 'ciaf@handball.com',
-        role: 'user',
-        clubId: 1,
-        clubNombre: 'CIAF',
-      },
-    },
-    {
-      username: 'minasHandball',
-      password: 'minasHandball123',
-      user: {
-        id: 3,
-        username: 'minasHandball',
-        email: 'minasHandball@handball.com',
-        role: 'user',
-        clubId: 2,
-        clubNombre: 'Minas Handball',
-      },
-    },
-  ];
 
   constructor() {
     this.loadUserFromStorage();
   }
 
-  login(credentials: LoginCredentials): Observable<User | null> {
-    return new Observable((observer) => {
-      const user = this.users.find(
-        (u) => u.username === credentials.username && u.password === credentials.password,
-      );
-
-      if (user) {
-        this.currentUserSubject.next(user.user);
-        localStorage.setItem('currentUser', JSON.stringify(user.user));
-        observer.next(user.user);
-      } else {
-        observer.error('Usuario o contraseña incorrectos');
-      }
-      observer.complete();
-    });
+  login(credentials: LoginCredentials): Observable<User> {
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
+      tap((res) => {
+        // Guardamos los datos físicamente
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('currentUser', JSON.stringify(res.user));
+        this.currentUserSubject.next(res.user);
+      }),
+      // AQUÍ ESTÁ LA CLAVE:
+      // Transformamos la respuesta para que el componente reciba solo res.user
+      map((res) => res.user),
+    );
   }
 
   logout(): void {
-    this.currentUserSubject.next(null);
+    localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
+    this.currentUserSubject.next(null);
   }
 
-  getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
-  }
-
+  // Los métodos auxiliares se mantienen igual de útiles
   isAuthenticated(): boolean {
-    return this.currentUserSubject.value !== null;
+    return !!localStorage.getItem('token');
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
   }
 
   isAdmin(): boolean {
-    return this.currentUserSubject.value?.role === 'admin';
+    return this.getCurrentUser()?.role === 'admin';
   }
 
-  getClubId(): number | undefined {
-    return this.currentUserSubject.value?.clubId;
+  getClubNombre(): string | null {
+    return this.getCurrentUser()?.username ?? null;
   }
-
-  getClubNombre(): string | undefined {
-    return this.currentUserSubject.value?.clubNombre;
+  getId(): string | null {
+    return this.getCurrentUser()?.id ?? null;
   }
 
   private loadUserFromStorage(): void {
     const userJson = localStorage.getItem('currentUser');
-    if (userJson) {
-      try {
-        const user = JSON.parse(userJson);
-        this.currentUserSubject.next(user);
-      } catch (e) {
-        console.error('Error al cargar usuario del storage', e);
-      }
+    const token = localStorage.getItem('token');
+    if (userJson && token) {
+      this.currentUserSubject.next(JSON.parse(userJson));
     }
+  }
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
   }
 }

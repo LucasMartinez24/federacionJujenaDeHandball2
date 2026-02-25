@@ -55,11 +55,23 @@
       <div class="grid grid-cols-12 gap-10">
         <!-- Clubs Sidebar -->
         <div class="col-span-3 flex flex-col gap-4 overflow-y-auto pr-2 hide-scrollbar">
-          <h3 class="text-[11px] font-bold text-gray-300 uppercase tracking-[0.2em] px-2 mb-2">Clubes Afiliados
-          </h3>
-          <button *ngFor="let club of clubes; let first = first" (click)="selectClub(club)"
-            [class.border-2]="selectedClub?.id === club.id" [class.border-primary]="selectedClub?.id === club.id"
-            [class.shadow-diffused]="selectedClub?.id === club.id"
+          <div
+            class="flex items-center justify-between px-4 py-2 mb-4 bg-charcoal-surface/50 rounded-xl border border-charcoal-border">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-sm">shield</span>
+              <h3 class="text-[11px] text-white font-bold text-muted-text uppercase tracking-[0.2em]">Clubes Afiliados
+              </h3>
+            </div>
+
+            <button routerLink="/club-create"
+              class="group flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 shadow-lg shadow-primary/5 active:scale-95 cursor-pointer"
+              title="Agregar club" aria-label="Agregar club">
+              <span
+                class="material-symbols-outlined text-[20px] leading-none transition-transform group-hover:rotate-90 pointer-events-none">add</span>
+            </button>
+          </div>
+          <button *ngFor="let club of clubes" (click)="selectClub(club)" [class.border-2]="selectedClub?.id === club.id"
+            [class.border-primary]="selectedClub?.id === club.id"
             class="flex items-center gap-5 p-5 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 hover:bg-gray-900/30 transition-all">
             <div
               class="w-14 h-14 rounded-xl bg-gray-700/50 flex items-center justify-center p-2 border border-gray-600 flex-shrink-0">
@@ -67,7 +79,7 @@
             </div>
             <div class="min-w-0">
               <p class="text-sm font-bold text-gray-100 truncate">{{ club.nombre }}</p>
-              <p class="text-[11px] text-gray-400 truncate mt-1">{{ getTotalJugadores(club.id) }} jugadores</p>
+              <p class="text-[11px] text-gray-400 truncate mt-1">{{ getTotalJugadores(club) }} jugadores</p>
             </div>
           </button>
         </div>
@@ -102,19 +114,19 @@
                     <div>
                       <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">Total de Jugadores
                       </p>
-                      <p class="text-[15px] font-semibold text-gray-100">{{ getTotalJugadores(selectedClub.id) }}</p>
+                      <p class="text-[15px] font-semibold text-gray-100">{{ getTotalJugadores(selectedClub) }}</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="flex flex-col gap-3 min-w-[180px]">
+              <div class="flex flex-col gap-3 min-w-45">
                 <button
-                  class="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary/20">
+                  class="bg-primary cursor-pointer hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary/20">
                   <span class="material-symbols-outlined text-xl">person_add</span>
                   Añadir Jugador
                 </button>
                 <button
-                  class="bg-charcoal border border-gray-600 hover:bg-gray-900/50 hover:border-gray-500 text-gray-300 text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
+                  class="bg-charcoal border cursor-pointer border-gray-600 hover:bg-gray-900/50 hover:border-gray-500 text-gray-300 text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
                   <span class="material-symbols-outlined text-xl">ios_share</span>
                   Exportar Plantilla
                 </button>
@@ -157,11 +169,11 @@
                     <td class="px-8 py-5">
                       <div
                         class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-gray-700 text-primary font-bold text-sm">
-                        {{ getInitials(jugador.nombre) }}
+                        {{ getInitials(jugador.nombreCompleto) }}
                       </div>
                     </td>
                     <td class="px-8 py-5">
-                      <p class="text-sm font-bold text-gray-100">{{ jugador.nombre }}</p>
+                      <p class="text-sm font-bold text-gray-100">{{ jugador.nombreCompleto }}</p>
                     </td>
                     <td class="px-8 py-5">
                       <span class="text-xs font-medium text-gray-400">{{ jugador.categoria }}</span>

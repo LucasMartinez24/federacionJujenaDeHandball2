@@ -59,9 +59,10 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (user) => {
+        // 'user' ahora es directamente el objeto con el role
         this.loading = false;
         if (user) {
-          // Redirigir según el rol del usuario
+          console.log('Usuario procesado:', user);
           if (user.role === 'admin') {
             this.router.navigate(['/clubes']);
           } else {
@@ -71,8 +72,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.error = err;
-        console.error('Error de login:', err);
+        this.error = 'Credenciales incorrectas';
       },
     });
   }

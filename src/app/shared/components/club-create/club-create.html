@@ -1,0 +1,86 @@
+<div class="min-h-screen w-full flex items-center justify-center bg-charcoal p-4 lg:p-8">
+
+  <div class="w-full max-w-[850px] animate-fade-in">
+    <div class="relative bg-charcoal-card rounded-[2.5rem] border border-charcoal-border shadow-2xl overflow-hidden">
+
+      <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 blur-[100px] rounded-full"></div>
+
+      <div class="relative p-10 lg:p-16">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl lg:text-4xl font-bold text-white tracking-tight">
+            Nuevo Club <span class="text-primary">Afiliado</span>
+          </h2>
+          <p class="text-muted-text mt-3 text-sm lg:text-base">Registro oficial de instituciones - Federación Jujeña</p>
+        </div>
+
+        <form [formGroup]="clubForm" (ngSubmit)="onSubmit()" class="space-y-10">
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div class="md:col-span-9 group-input">
+              <label class="form-label-new">Nombre de la Institución</label>
+              <div class="relative">
+                <input formControlName="nombre" class="form-input-new" placeholder="Ej: Club ..." type="text" />
+                <div class="input-focus-line"></div>
+              </div>
+            </div>
+
+            <div class="md:col-span-3 group-input">
+              <label class="form-label-new">Siglas</label>
+              <div class="relative">
+                <input formControlName="siglas" class="form-input-new uppercase text-center" placeholder="CAL"
+                  maxlength="5" type="text" />
+                <div class="input-focus-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <div class="flex items-center gap-4 mb-8">
+              <h3 class="text-[10px] font-bold text-primary uppercase tracking-[0.3em]">Credenciales de Acceso</h3>
+              <div class="h-px flex-1 bg-charcoal-border"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="group-input">
+                <label class="form-label-new">Usuario Administrador</label>
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-muted-text/30 text-xl input-icon-span">person</span>
+                  <input formControlName="username" class="form-input-new input-with-icon-left" placeholder="admin_club"
+                    type="text" />
+                  <div class="input-focus-line"></div>
+                </div>
+              </div>
+
+              <div class="group-input">
+                <label class="form-label-new">Contraseña</label>
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-muted-text/30 text-xl input-icon-span">lock</span>
+                  <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                    class="form-input-new input-with-icon-left input-with-icon-right" placeholder="••••••••" />
+                  <button (click)="togglePassword()" type="button"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-muted-text/40 hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                  <div class="input-focus-line"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col md:flex-row gap-6 pt-6">
+            <button routerLink="/clubes" type="button"
+              class="flex-1 px-8 py-5 rounded-2xl border border-charcoal-border text-muted-text font-semibold hover:bg-charcoal-surface hover:text-white transition-all cursor-pointer">
+              Cancelar
+            </button>
+            <button [disabled]="clubForm.invalid || loading" type="submit"
+              class="flex-1 px-8 py-5 rounded-2xl bg-primary text-white font-bold shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-30 cursor-pointer">
+              {{ loading ? 'Registrando...' : 'Confirmar Registro' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
