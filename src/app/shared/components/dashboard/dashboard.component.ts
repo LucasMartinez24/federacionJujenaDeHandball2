@@ -1,45 +1,42 @@
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // Necesario para el [(ngModel)] del buscador
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { JugadoresService, Jugador } from '../../../core/services/jugadores.service';
-
+import { toast } from 'ngx-sonner';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private jugadoresService = inject(JugadoresService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
   clubNombre: string = '';
   clubId: string | null = null;
   jugadores: Jugador[] = [];
   isLoading: boolean = false;
 
+  // Variable para el filtro de búsqueda
+  searchText: string = '';
+
   private sub: Subscription = new Subscription();
-
-  constructor(
-    private authService: AuthService,
-    private jugadoresService: JugadoresService,
-  ) {}
-
-  private normalizeId(value: unknown): string {
-    return String(value ?? '')
-      .trim()
-      .toLowerCase();
-  }
 
   ngOnInit(): void {
     this.sub.add(
       this.authService.currentUser$.subscribe((user: any) => {
         if (user) {
           this.clubNombre = user.nombre || user.username || 'Mi Club';
-
           this.clubId = (user.clubId ?? user.club?.id ?? user.id ?? null) as string | null;
-
           this.loadJugadores();
+          this.cdr.detectChanges();
         }
       }),
     );
@@ -50,50 +47,84 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.jugadores = [];
           return;
         }
-
         const clubIdNorm = this.normalizeId(this.clubId);
-
         this.jugadores = data.filter((j: any) => {
           const jugadorClubId = j.clubId ?? j.club?.id ?? j.club_id;
           return this.normalizeId(jugadorClubId) === clubIdNorm;
         });
+        this.cdr.detectChanges();
       }),
     );
   }
 
-  loadJugadores(): void {
-    this.isLoading = true;
-    // Llamamos al servicio para que haga el GET al backend
-    if (this.clubId) {
-      this.sub.add(
-        this.jugadoresService.getJugadores(this.clubId).subscribe({
-          next: () => {
-            this.isLoading = false;
-          },
-          error: (err) => {
-            this.isLoading = false;
-            console.error('Error al traer jugadores del backend', err);
-          },
-        }),
-      );
-    } else {
-      this.isLoading = false;
-    }
+  // --- LÓGICA DE FILTRADO ---
+  get jugadoresFiltrados(): Jugador[] {
+    if (!this.searchText) return this.jugadores;
+    const term = this.searchText.toLowerCase().trim();
+    return this.jugadores.filter(
+      (j) => j.nombreCompleto.toLowerCase().includes(term) || j.dni.toString().includes(term),
+    );
   }
 
-  // Se recomienda usar la categoría que ya viene calculada del backend
-  // pero mantenemos esta por si el backend no la envía.
-  getCategory(jugador: Jugador): string {
-    if (jugador.categoria) return jugador.categoria;
+  loadJugadores(): void {
+    if (!this.clubId) return;
+    this.isLoading = true;
+    this.sub.add(
+      this.jugadoresService.getJugadores(this.clubId).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+      }),
+    );
+  }
 
-    const nacimiento = new Date(jugador.fechaNacimiento);
-    const edad = 2026 - nacimiento.getFullYear();
+  // --- FUNCIONALIDADES ---
 
-    if (edad >= 18) return 'Primera';
-    if (edad >= 16) return 'Juvenil';
-    if (edad >= 14) return 'Cadete';
-    if (edad >= 12) return 'Menores';
-    return 'Infantiles';
+  editarJugador(jugador: Jugador): void {
+    this.router.navigate(['/jugador-form', jugador.id], {
+      queryParams: { clubId: this.clubId, edit: 'true' },
+    });
+  }
+  showDeleteModal: boolean = false;
+  playerToDelete: { id: string; name: string } | null = null;
+  confirmDelete(jugador: Jugador): void {
+    this.playerToDelete = { id: jugador.id, name: jugador.nombreCompleto };
+    this.showDeleteModal = true;
+    this.cdr.detectChanges();
+  }
+
+  // Cerrar modal
+  closeModal(): void {
+    this.showDeleteModal = false;
+    this.playerToDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  // Ejecutar eliminación real
+  executeDelete(): void {
+    if (!this.playerToDelete) return;
+    const playerName = this.playerToDelete.name;
+    this.jugadoresService.deleteJugador(this.playerToDelete.id).subscribe({
+      next: () => {
+        this.closeModal();
+        toast.warning('Jugador eliminado', {
+          description: `Se ha borrado la ficha de ${playerName}`,
+        });
+      },
+      error: () => toast.error('Error al eliminar'),
+    });
+  }
+
+  // --- HELPERS ---
+  private normalizeId(value: unknown): string {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase();
   }
 
   getInitials(name: string): string {
@@ -106,19 +137,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .toUpperCase();
   }
 
-  deleteJugador(id: string): void {
-    if (confirm('¿Está seguro de que desea eliminar este jugador?')) {
-      this.jugadoresService.deleteJugador(id).subscribe({
-        next: () => {
-          // No hace falta filtrar a mano, el servicio ya actualiza el Subject
-          console.log('Jugador eliminado con éxito');
-        },
-        error: (err) => alert('Error al eliminar el jugador'),
-      });
-    }
-  }
-
   ngOnDestroy(): void {
-    this.sub.unsubscribe(); // Limpieza de memoria
+    this.sub.unsubscribe();
   }
 }

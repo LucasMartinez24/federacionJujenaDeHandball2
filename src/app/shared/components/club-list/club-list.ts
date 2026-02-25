@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core'; // 1. Importamos ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ClubesService, Club } from '../../../core/services/clubes.service';
@@ -14,6 +14,7 @@ import { Jugador } from '../../../core/services/jugadores.service';
 export class ClubList implements OnInit {
   private clubesService = inject(ClubesService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef); // 2. Inyectamos el detector de cambios
 
   clubes: Club[] = [];
   selectedClub: Club | null = null;
@@ -24,21 +25,28 @@ export class ClubList implements OnInit {
   }
 
   loadClubs(): void {
-    console.log('[ClubList] Intentando llamar al servicio...'); // TEST 1
+    console.log('[ClubList] Intentando llamar al servicio...');
     this.isLoading = true;
 
     this.clubesService.getClubes().subscribe({
       next: (res) => {
-        console.log('[ClubList] ¡Llegaron datos!', res); // TEST 2
+        console.log('[ClubList] ¡Llegaron datos!', res);
         this.clubes = res || [];
+
         if (this.clubes.length > 0) {
           this.selectedClub = this.clubes[0];
         }
+
         this.isLoading = false;
+
+        // 3. FUNCIONALIDAD DE CARGA RÁPIDA:
+        // Forzamos a Angular a que detecte los cambios y actualice el HTML inmediatamente
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('[ClubList] Error en suscripción:', err);
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       complete: () => console.log('[ClubList] Petición finalizada'),
     });
@@ -46,6 +54,8 @@ export class ClubList implements OnInit {
 
   selectClub(club: Club): void {
     this.selectedClub = club;
+    // Forzamos la actualización visual al cambiar de club seleccionado
+    this.cdr.detectChanges();
   }
 
   // --- FUNCIONALIDADES DE JUGADORES ---
@@ -58,6 +68,8 @@ export class ClubList implements OnInit {
     }
   }
 
+  // --- FUNCIONALIDAD: EDITAR JUGADOR ---
+  // Envía el ID del jugador en la ruta y el clubId por queryParams
   editarJugador(jugador: Jugador): void {
     if (this.selectedClub) {
       this.router.navigate(['/jugador-form', jugador.id], {

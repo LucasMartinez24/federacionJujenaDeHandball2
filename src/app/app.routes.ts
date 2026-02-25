@@ -3,6 +3,7 @@ import { LoginComponent } from './shared/components/login/login.component';
 import { ClubList } from './shared/components/club-list/club-list';
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { JugadorFormComponent } from './shared/components/jugador-form/jugador-form.component';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Formulario de Jugador - Federación',
   },
+  { path: 'jugador-form/:id', component: JugadorFormComponent, canActivate: [authGuard] },
   {
     path: 'clubes',
     component: ClubList,

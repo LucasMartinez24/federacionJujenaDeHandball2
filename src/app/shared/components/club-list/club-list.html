@@ -72,7 +72,7 @@
           </div>
           <button *ngFor="let club of clubes" (click)="selectClub(club)" [class.border-2]="selectedClub?.id === club.id"
             [class.border-primary]="selectedClub?.id === club.id"
-            class="flex items-center gap-5 p-5 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 hover:bg-gray-900/30 transition-all">
+            class="flex cursor-pointer items-center gap-5 p-5 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 hover:bg-gray-900/30 transition-all">
             <div
               class="w-14 h-14 rounded-xl bg-gray-700/50 flex items-center justify-center p-2 border border-gray-600 flex-shrink-0">
               <span class="material-symbols-outlined text-2xl text-primary">sports_handball</span>
@@ -120,8 +120,8 @@
                 </div>
               </div>
               <div class="flex flex-col gap-3 min-w-45">
-                <button
-                  class="bg-primary cursor-pointer hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-primary/20">
+                <button (click)="navegarCrearJugador()"
+                  class="bg-primary cursor-pointer hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
                   <span class="material-symbols-outlined text-xl">person_add</span>
                   Añadir Jugador
                 </button>
@@ -187,7 +187,7 @@
                     </td>
                     <td class="px-8 py-5 text-right">
                       <div class="flex items-center justify-end gap-2">
-                        <button
+                        <button (click)="editarJugador(jugador)"
                           class="p-2 text-gray-400 hover:text-primary transition-colors hover:bg-gray-900/50 rounded-lg"
                           title="Editar">
                           <span class="material-symbols-outlined text-xl">edit</span>

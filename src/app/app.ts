@@ -2,10 +2,10 @@ import { Component, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Nav } from './shared/components/nav/nav';
 import { CommonModule } from '@angular/common';
-
+import { NgxSonnerToaster } from 'ngx-sonner';
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Nav, CommonModule],
+  imports: [RouterOutlet, Nav, CommonModule, NgxSonnerToaster],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
