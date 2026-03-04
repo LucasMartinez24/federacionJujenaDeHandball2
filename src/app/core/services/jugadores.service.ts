@@ -17,7 +17,7 @@ export interface Jugador {
   peso?: number | null;
   altura?: number | null;
   manoHabil?: string;
-  tipoFicha?: string;
+  estado?: string;
   categoria?: string;
   anio?: string; // Cambiamos a string si así lo tenías antes, o number si prefieres
 }
@@ -80,5 +80,9 @@ export class JugadoresService {
         this.jugadoresSubject.next([...this.jugadoresSubject.value, nuevoJugador]);
       }),
     );
+  }
+  // En jugadores.service.ts
+  getJugadorById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 }

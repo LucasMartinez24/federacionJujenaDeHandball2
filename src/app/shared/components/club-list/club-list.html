@@ -1,229 +1,256 @@
-<div class="flex flex-col h-full bg-background-light dark:bg-slate-950">
-  <div class="p-8">
+<div class="flex flex-col h-full bg-slate-950">
+  <div class="p-6 md:p-8">
     <div class="text-slate-50">
-      <h2 class="text-2xl font-bold tracking-tight mb-2">Gestión de Clubes</h2>
-      <p class="text-slate-400">Administra todos los clubes y sus plantillas</p>
+      <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-2">Gestión de Clubes</h2>
+      <p class="text-sm text-slate-400">Administra todos los clubes y sus plantillas</p>
     </div>
   </div>
 
   <div class="flex-1 flex flex-col min-w-0 bg-charcoal">
+    <main class="flex-1 overflow-y-auto bg-charcoal p-4 md:p-10 custom-scrollbar">
 
-    <main class="flex-1 overflow-y-auto bg-charcoal p-10">
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-4 gap-8 mb-10">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mb-10">
         <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
           <div class="flex items-center justify-between">
             <p class="text-gray-300 text-sm font-medium">Total de Clubes</p>
             <span class="material-symbols-outlined text-primary bg-primary/10 p-2.5 rounded-xl">shield</span>
           </div>
           <p class="text-3xl font-bold mt-4 text-gray-100">{{ clubes.length }}</p>
-          <p class="text-xs text-green-400/70 font-medium mt-2 flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">trending_up</span> Activo
-          </p>
         </div>
-
         <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
           <div class="flex items-center justify-between">
             <p class="text-gray-300 text-sm font-medium">Jugadores Activos</p>
             <span class="material-symbols-outlined text-emerald-400/80 bg-emerald-400/10 p-2.5 rounded-xl">groups</span>
           </div>
           <p class="text-3xl font-bold mt-4 text-gray-100">{{ getTotalAllJugadores() }}</p>
-          <p class="text-xs text-gray-400 font-medium mt-2">Total de la federación</p>
         </div>
-
         <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
           <div class="flex items-center justify-between">
             <p class="text-gray-300 text-sm font-medium">Registros Pendientes</p>
             <span
               class="material-symbols-outlined text-amber-400/80 bg-amber-400/10 p-2.5 rounded-xl">hourglass_empty</span>
           </div>
-          <p class="text-3xl font-bold mt-4 text-gray-100">0</p>
-          <p class="text-xs text-amber-400/70 font-medium mt-2">Requiere revisión</p>
+          <p class="text-3xl font-bold mt-4 text-gray-100">{{ getTotalRegistrosPendientes() }}</p>
         </div>
-
         <div class="bg-charcoal-card p-6 rounded-2xl border border-gray-600 shadow-soft">
           <div class="flex items-center justify-between">
             <p class="text-gray-300 text-sm font-medium">Competencias Activas</p>
             <span class="material-symbols-outlined text-indigo-400/80 bg-indigo-400/10 p-2.5 rounded-xl">stadium</span>
           </div>
           <p class="text-3xl font-bold mt-4 text-gray-100">0</p>
-          <p class="text-xs text-gray-400 font-medium mt-2">En todas las divisiones</p>
         </div>
       </div>
 
-      <!-- Clubs Grid and Details -->
-      <div class="grid grid-cols-12 gap-10">
-        <!-- Clubs Sidebar -->
-        <div class="col-span-3 flex flex-col gap-4 overflow-y-auto pr-2 hide-scrollbar">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+
+        <div
+          class="col-span-1 lg:col-span-3 flex flex-row lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto pr-2 pb-2 lg:pb-0 hide-scrollbar items-center lg:items-stretch">
+
+          <button routerLink="/club-create"
+            class="lg:hidden flex-shrink-0 size-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-3xl">add</span>
+          </button>
+
           <div
-            class="flex items-center justify-between px-4 py-2 mb-4 bg-charcoal-surface/50 rounded-xl border border-charcoal-border">
+            class="hidden lg:flex items-center justify-between px-4 py-2 mb-4 bg-charcoal-surface/50 rounded-xl border border-charcoal-border">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-sm">shield</span>
-              <h3 class="text-[11px] text-white font-bold text-muted-text uppercase tracking-[0.2em]">Clubes Afiliados
-              </h3>
+              <h3 class="text-[11px] text-white font-bold uppercase tracking-[0.2em]">Clubes Afiliados</h3>
             </div>
-
             <button routerLink="/club-create"
-              class="group flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 shadow-lg shadow-primary/5 active:scale-95 cursor-pointer"
-              title="Agregar club" aria-label="Agregar club">
-              <span
-                class="material-symbols-outlined text-[20px] leading-none transition-transform group-hover:rotate-90 pointer-events-none">add</span>
+              class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-[20px]">add</span>
             </button>
           </div>
+
           <button *ngFor="let club of clubes" (click)="selectClub(club)" [class.border-2]="selectedClub?.id === club.id"
             [class.border-primary]="selectedClub?.id === club.id"
-            class="flex cursor-pointer items-center gap-5 p-5 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 hover:bg-gray-900/30 transition-all">
+            class="flex-shrink-0 lg:flex-shrink flex cursor-pointer items-center gap-4 p-4 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 transition-all min-w-[240px] lg:min-w-0">
             <div
-              class="w-14 h-14 rounded-xl bg-gray-700/50 flex items-center justify-center p-2 border border-gray-600 flex-shrink-0">
-              <span class="material-symbols-outlined text-2xl text-primary">sports_handball</span>
+              class="size-10 md:size-12 rounded-lg bg-gray-900 flex items-center justify-center overflow-hidden border border-charcoal-border flex-shrink-0">
+              <img *ngIf="club.logoUrl" [src]="'http://localhost:3000' + club.logoUrl" alt="Logo"
+                class="w-full h-full object-contain p-1">
+              <span *ngIf="!club.logoUrl" class="text-xs font-bold text-primary">{{ club.siglas }}</span>
             </div>
             <div class="min-w-0">
               <p class="text-sm font-bold text-gray-100 truncate">{{ club.nombre }}</p>
-              <p class="text-[11px] text-gray-400 truncate mt-1">{{ getTotalJugadores(club) }} jugadores</p>
+              <p class="text-[11px] text-gray-400 truncate mt-0.5">{{ getTotalJugadores(club) }} jugadores</p>
             </div>
           </button>
         </div>
 
-        <!-- Club Details -->
-        <div class="col-span-9 space-y-10">
-          <div *ngIf="selectedClub" class="bg-charcoal-card rounded-2xl p-8 shadow-diffused border border-gray-600">
-            <div class="flex items-start justify-between">
-              <div class="flex items-center gap-8">
-                <div
-                  class="w-28 h-28 rounded-2xl bg-charcoal flex items-center justify-center border border-gray-700 overflow-hidden shadow-inner">
-                  <span class="material-symbols-outlined text-6xl text-primary/30">sports_handball</span>
+        <div class="col-span-1 lg:col-span-9 space-y-6 md:space-y-10">
+          <div *ngIf="selectedClub"
+            class="bg-charcoal-card rounded-2xl p-6 md:p-8 shadow-diffused border border-gray-600">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+              <div class="flex flex-col sm:flex-row items-center gap-6 md:gap-8">
+                <div class="relative group">
+                  <div
+                    class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-charcoal flex items-center justify-center overflow-hidden border border-gray-700">
+                    <img *ngIf="selectedClub.logoUrl" [src]="'http://localhost:3000' + selectedClub.logoUrl"
+                      alt="{{ selectedClub.nombre }}">
+                    <span *ngIf="!selectedClub.logoUrl" class="text-xl font-bold text-primary">{{ selectedClub.siglas
+                      }}</span>
+                  </div>
+                  <button (click)="editarClub(selectedClub)"
+                    class="absolute -top-2 -right-2 size-8 bg-slate-800 border border-slate-700 rounded-full text-slate-400 hover:text-primary transition-all shadow-xl flex items-center justify-center cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                  </button>
+                  <button (click)="confirmDeleteClub(selectedClub)"
+                    class="absolute -bottom-2 -right-2 size-8 bg-red-700 border border-red-700 rounded-full text-white transition-all shadow-xl flex items-center justify-center cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                  </button>
                 </div>
-                <div>
-                  <h2 class="text-3xl font-bold text-gray-100 tracking-tight">{{ selectedClub.nombre }}</h2>
-                  <div class="flex items-center gap-6 mt-3">
-                    <div class="flex items-center gap-1.5 text-gray-400 text-sm">
-                      <span class="material-symbols-outlined text-xl">location_on</span>
-                      <span>San Salvador de Jujuy, Argentina</span>
-                    </div>
-                    <div
-                      class="flex items-center gap-2.5 px-4 py-1.5 bg-green-500/10 rounded-full text-[10px] font-bold text-green-400 tracking-wider border border-green-500/30">
-                      <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                      FEDERACIÓN ACTIVA
-                    </div>
+
+                <div class="text-center sm:text-left">
+                  <div class="flex items-center justify-center sm:justify-start gap-3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-100 tracking-tight">{{ selectedClub.nombre }}
+                    </h2>
                   </div>
-                  <div class="grid grid-cols-2 gap-12 mt-6">
-                    <div>
-                      <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">ID del Club</p>
-                      <p class="text-[15px] font-semibold text-gray-100">{{ selectedClub.id }}</p>
-                    </div>
-                    <div>
-                      <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">Total de Jugadores
-                      </p>
-                      <p class="text-[15px] font-semibold text-gray-100">{{ getTotalJugadores(selectedClub) }}</p>
-                    </div>
-                  </div>
+
+                  <p
+                    class="text-[10px] md:text-[11px] font-bold text-green-400 uppercase tracking-widest mt-2 flex items-center justify-center sm:justify-start gap-2">
+                    <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Club Activo
+                  </p>
                 </div>
               </div>
-              <div class="flex flex-col gap-3 min-w-45">
+
+              <div class="flex flex-col gap-3 w-full sm:w-auto">
                 <button (click)="navegarCrearJugador()"
-                  class="bg-primary cursor-pointer hover:bg-primary-dark text-white text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
-                  <span class="material-symbols-outlined text-xl">person_add</span>
-                  Añadir Jugador
+                  class="bg-primary hover:bg-blue-700 text-white text-sm font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95">
+                  <span class="material-symbols-outlined text-xl">person_add</span> Añadir Jugador
                 </button>
                 <button
-                  class="bg-charcoal border cursor-pointer border-gray-600 hover:bg-gray-900/50 hover:border-gray-500 text-gray-300 text-sm font-semibold px-6 py-3.5 rounded-xl flex items-center justify-center gap-3 transition-all">
-                  <span class="material-symbols-outlined text-xl">ios_share</span>
-                  Exportar Plantilla
+                  class="bg-charcoal border border-gray-600 hover:bg-gray-900/50 text-gray-300 text-sm font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer">
+                  <span class="material-symbols-outlined text-xl">ios_share</span> Exportar Plantilla
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Players Table -->
           <div class="bg-charcoal-card rounded-2xl shadow-diffused border border-gray-600 overflow-hidden">
-            <div class="px-8 py-6 border-b border-gray-600 flex items-center justify-between">
-              <h3 class="font-bold text-xl text-gray-100">Jugadores Registrados</h3>
-              <div class="flex items-center gap-5">
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 text-xl">search</span>
-                  <input
-                    class="pl-11 pr-4 py-2.5 text-xs bg-charcoal border border-gray-600 rounded-xl w-60 text-gray-100 focus:ring-1 focus:ring-primary/40 placeholder-gray-500"
-                    placeholder="Filtrar plantilla..." type="text" />
-                </div>
-                <button class="text-gray-400 hover:text-primary transition-colors">
-                  <span class="material-symbols-outlined text-2xl">filter_list</span>
-                </button>
+            <div
+              class="px-6 md:px-8 py-6 border-b border-gray-600 flex flex-col md:flex-row items-center justify-between gap-4">
+              <h3 class="font-bold text-lg md:text-xl text-gray-100">Audit de Plantilla</h3>
+              <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                <input [(ngModel)]="searchText"
+                  class="w-full sm:w-64 pl-4 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200"
+                  placeholder="Buscar jugador/DNI...">
+                <select [(ngModel)]="statusFilter"
+                  class="w-full sm:w-auto px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300">
+                  <option value="Todos">Todos</option>
+                  <option value="Pendiente">Pendientes</option>
+                  <option value="Aprobado">Aprobados</option>
+                </select>
               </div>
             </div>
 
             <div class="overflow-x-auto">
-              <table class="w-full text-left">
+              <table class="w-full text-left border-collapse">
                 <thead
-                  class="bg-charcoal text-gray-300 text-[11px] uppercase tracking-[0.15em] font-bold border-b border-gray-600">
+                  class="bg-charcoal text-gray-300 text-[11px] uppercase tracking-widest font-bold border-b border-gray-600">
                   <tr>
-                    <th class="px-8 py-5">Foto</th>
-                    <th class="px-8 py-5">Nombre Completo</th>
-                    <th class="px-8 py-5">Categoría</th>
-                    <th class="px-8 py-5">DNI</th>
-                    <th class="px-8 py-5">Estado</th>
-                    <th class="px-8 py-5 text-right">Acciones</th>
+                    <th class="px-4 md:px-8 py-5">Nombre</th>
+                    <th class="px-4 md:px-8 py-5">DNI</th>
+                    <th class="hidden md:table-cell px-8 py-5">Categoría</th>
+                    <th class="px-2 md:px-8 py-5 text-center">Est.</th>
+                    <th class="px-4 md:px-8 py-5 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700">
-                  <tr *ngFor="let jugador of selectedClub?.jugadores" class="hover:bg-gray-900/30 transition-colors">
-                    <td class="px-8 py-5">
-                      <div
-                        class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-gray-700 text-primary font-bold text-sm">
-                        {{ getInitials(jugador.nombreCompleto) }}
+                  <tr *ngFor="let jugador of jugadoresFiltrados" class="hover:bg-gray-900/30 transition-colors"
+                    [ngClass]="{'border-l-4 border-amber-500/50 bg-amber-500/[0.03]': jugador.estado === 'Pendiente' || !jugador.estado}">
+                    <td class="px-4 md:px-8 py-4">
+                      <p class="text-sm font-bold text-gray-100 truncate max-w-[140px] sm:max-w-none">{{
+                        jugador.nombreCompleto }}</p>
+                    </td>
+                    <td class="px-4 md:px-8 py-4 text-xs md:text-sm text-gray-400 font-mono">{{ jugador.dni }}</td>
+
+                    <td class="hidden md:table-cell px-8 py-4 text-xs text-gray-400">{{ jugador.categoria }}</td>
+
+                    <td class="px-2 md:px-8 py-4 text-center">
+                      <div class="inline-flex items-center justify-center">
+                        <div [title]="jugador.estado || 'Pendiente'" [ngClass]="{
+                               'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse': jugador.estado === 'Pendiente' || !jugador.estado,
+                               'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]': jugador.estado === 'Aprobado',
+                               'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]': jugador.estado === 'Rechazado'
+                             }" class="size-2.5 md:size-3 rounded-full">
+                        </div>
                       </div>
                     </td>
-                    <td class="px-8 py-5">
-                      <p class="text-sm font-bold text-gray-100">{{ jugador.nombreCompleto }}</p>
-                    </td>
-                    <td class="px-8 py-5">
-                      <span class="text-xs font-medium text-gray-400">{{ jugador.categoria }}</span>
-                    </td>
-                    <td class="px-8 py-5">
-                      <p class="text-xs font-mono text-gray-400">{{ jugador.dni }}</p>
-                    </td>
-                    <td class="px-8 py-5">
-                      <span
-                        class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-wide border border-emerald-500/30">ACTIVO</span>
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                      <div class="flex items-center justify-end gap-2">
+
+                    <td class="px-4 md:px-8 py-4 text-right">
+                      <div class="flex items-center justify-end gap-0 md:gap-0">
+                        <button *ngIf="jugador.estado !== 'Aprobado'" (click)="cambiarEstado(jugador, 'Aprobado')"
+                          class="p-1 text-gray-400 cursor-pointer hover:text-emerald-400 transition-colors"><span
+                            class="material-symbols-outlined text-xl">check_circle</span></button>
+                        <button *ngIf="jugador.estado !== 'Rechazado'" (click)="cambiarEstado(jugador, 'Rechazado')"
+                          class="p-1 text-gray-400 cursor-pointer hover:text-amber-400 transition-colors"><span
+                            class="material-symbols-outlined text-xl">block</span></button>
                         <button (click)="editarJugador(jugador)"
-                          class="p-2 text-gray-400 hover:text-primary transition-colors hover:bg-gray-900/50 rounded-lg"
-                          title="Editar">
-                          <span class="material-symbols-outlined text-xl">edit</span>
-                        </button>
-                        <button
-                          class="p-2 text-gray-400 hover:text-gray-200 transition-colors hover:bg-gray-900/50 rounded-lg"
-                          title="Más opciones">
-                          <span class="material-symbols-outlined text-xl">more_vert</span>
-                        </button>
+                          class="p-1 text-gray-400 cursor-pointer hover:text-primary transition-colors"><span
+                            class="material-symbols-outlined text-xl">edit</span></button>
+                        <button (click)="confirmDelete(jugador)"
+                          class="p-1 text-gray-400 cursor-pointer hover:text-red-500 transition-colors"><span
+                            class="material-symbols-outlined text-xl">delete</span></button>
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-
-            <div
-              class="px-8 py-6 border-t border-gray-600 flex items-center justify-between text-xs text-gray-400 font-medium">
-              <p>Mostrando {{ selectedClub?.jugadores?.length || 0 }} jugadores</p>
-              <div class="flex items-center gap-3">
-                <button
-                  class="p-2 rounded-lg border border-gray-600 hover:bg-gray-900/50 hover:text-gray-300 transition-colors disabled:opacity-30"
-                  title="Anterior">
-                  <span class="material-symbols-outlined text-base leading-none">chevron_left</span>
-                </button>
-                <button class="px-3.5 py-1.5 rounded-lg bg-primary text-white font-bold">1</button>
-                <button
-                  class="p-2 rounded-lg border border-gray-600 hover:bg-gray-900/50 hover:text-gray-300 transition-colors"
-                  title="Siguiente">
-                  <span class="material-symbols-outlined text-base leading-none">chevron_right</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </main>
+  </div>
+</div>
+<div *ngIf="showDeleteModal"
+  class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl scale-in">
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+        <span class="material-symbols-outlined text-red-500 text-3xl">delete_forever</span>
+      </div>
+      <h3 class="text-xl font-bold text-white mb-2">¿Eliminar jugador?</h3>
+      <p class="text-slate-400 text-sm leading-relaxed mb-8">
+        Estás a punto de eliminar a <span class="text-slate-200 font-bold">{{ playerToDelete?.name }}</span>
+        permanentemente.
+      </p>
+      <div class="flex items-center gap-3 w-full">
+        <button (click)="closeModal()"
+          class="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-slate-300 font-semibold text-sm">Cancelar</button>
+        <button (click)="executeDelete()"
+          class="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold text-sm">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="showDeleteModalClub" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+
+  <div class="relative bg-charcoal-card border border-gray-600 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+    <div class="text-center">
+      <div class="size-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-4xl">warning</span>
+      </div>
+      <h3 class="text-xl font-bold text-gray-100">¿Eliminar Club?</h3>
+      <p class="text-gray-400 text-sm mt-2">
+        Esta acción eliminará a <strong>{{ clubToDelete?.nombre }}</strong>.
+        Esta acción no se puede deshacer.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 mt-8">
+      <button (click)="executeDeleteClub()"
+        class="w-full bg-red-600 cursor-pointer hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all">
+        Confirmar Eliminación
+      </button>
+      <button (click)="showDeleteModalClub = false"
+        class="w-full bg-transparent cursor-pointer text-gray-400 hover:text-white font-medium py-2 transition-all">
+        Cancelar
+      </button>
+    </div>
   </div>
 </div>

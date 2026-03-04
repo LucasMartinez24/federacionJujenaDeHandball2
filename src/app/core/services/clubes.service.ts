@@ -8,6 +8,7 @@ export interface Club {
   nombre: string;
   siglas: string;
   username: string;
+  logoUrl?: string; // <--- Agregamos esta propiedad
   jugadores?: Jugador[];
 }
 
@@ -21,8 +22,13 @@ export class ClubesService {
   getClubes(): Observable<Club[]> {
     return this.http.get<Club[]>(`${this.apiUrl}/`);
   }
-
+  updateClub(id: string, formData: FormData): Observable<Club> {
+    return this.http.put<Club>(`${this.apiUrl}/${id}`, formData);
+  }
   createClub(clubData: any): Observable<any> {
     return this.http.post(this.apiUrl, clubData);
+  }
+  deleteClub(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

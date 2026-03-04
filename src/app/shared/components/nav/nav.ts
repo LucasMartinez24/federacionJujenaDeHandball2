@@ -14,7 +14,15 @@ export class Nav {
     private authService: AuthService,
     private router: Router,
   ) {}
+  isMenuOpen = false;
 
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
   isAdmin(): boolean {
     return this.authService.isAdmin();
   }

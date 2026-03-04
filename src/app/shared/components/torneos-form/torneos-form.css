@@ -1,0 +1,55 @@
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+
+/* Estilo para los Radio Cards */
+.radio-card input:checked+.radio-card-content {
+  border-color: #135bec;
+  background-color: rgba(19, 91, 236, 0.1);
+  box-shadow: 0 0 0 1px #135bec;
+}
+
+.radio-card-content {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Estilo global para los selectores del componente */
+select {
+  color-scheme: dark;
+  /* Ayuda a que algunos navegadores rendericen el drop oscuro */
+}
+
+select option {
+  background-color: #1E1E1E;
+  /* bg-dark-card */
+  color: white;
+  padding: 10px;
+}
+
+/* Eliminar la flecha nativa para usar el icono de Google Material */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Efecto focus para los inputs y select */
+input:focus,
+select:focus {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(19, 91, 236, 0.5);
+}
+
+.radio-card-content {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

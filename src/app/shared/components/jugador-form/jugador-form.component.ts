@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { JugadoresService, Jugador } from '../../../core/services/jugadores.service';
-import { ClubesService } from '../../../core/services/clubes.service'; // Inyectar para buscar el nombre
+import { ClubesService } from '../../../core/services/clubes.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-jugador-form',
@@ -20,10 +21,14 @@ export class JugadorFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  windowWidth = window.innerWidth;
 
+  @HostListener('window:resize')
+  onResize() {
+    this.windowWidth = window.innerWidth;
+  }
   isEditMode: boolean = false;
   jugadorId: string | null = null;
-  loading: boolean = false;
   errorMessage: string = '';
 
   jugadorData: any = {
@@ -37,36 +42,36 @@ export class JugadorFormComponent implements OnInit {
     tutorPhone: '',
     peso: null,
     altura: null,
-    tipoFicha: 'Jugador Activo',
-    clubId: '', // Este es el que enviaremos al backend
+    estado: 'Pendiente',
+    clubId: '',
   };
 
   birthDate: string = '';
   selectedCategory: string = '';
   isMinor: boolean = false;
   selectedHand: string = 'Derecha';
-  clubNombre: string = 'Cargando club...'; // Para mostrar en el input readonly
+  clubNombre: string = 'Cargando club...';
 
-  fileNames = { certificado: '', dniFrontal: '' };
+  // Manejo de archivos y previsualización
+  fileNames = { fichaMedica: '', autorizacionPadres: '' };
+  files = { fichaMedica: null as File | null, autorizacionPadres: null as File | null };
+  urlsExistentes = { fichaMedica: '', autorizacionPadres: '' };
 
   ngOnInit() {
     this.jugadorId = this.route.snapshot.paramMap.get('id');
-
+    console.log('Jugador ID:', this.jugadorId); // Debug: Verificar ID recibido
     this.route.queryParams.subscribe((params) => {
-      // 1. CAPTURAR EL CLUB DESDE LA URL (GESTIÓN DE CLUBES)
       if (params['clubId']) {
         this.jugadorData.clubId = params['clubId'];
         this.buscarNombreClub(params['clubId']);
       }
 
-      // 2. MODO EDICIÓN
       if (params['edit'] === 'true' && this.jugadorId) {
         this.isEditMode = true;
         this.cargarDatosJugador(this.jugadorId);
       }
     });
 
-    // 3. SI NO HAY CLUB EN URL, USAR EL DEL USUARIO (CASO LOGIN CLUB)
     if (!this.jugadorData.clubId) {
       this.jugadorData.clubId = this.auth.getId();
       this.clubNombre = this.auth.getClubNombre() || 'Mi Club';
@@ -76,7 +81,6 @@ export class JugadorFormComponent implements OnInit {
   }
 
   buscarNombreClub(id: string) {
-    // Buscamos en la lista de clubes que ya debería estar en el servicio de clubes
     this.clubesService.getClubes().subscribe((clubes) => {
       const club = clubes.find((c) => c.id === id);
       if (club) {
@@ -87,20 +91,26 @@ export class JugadorFormComponent implements OnInit {
   }
 
   cargarDatosJugador(id: string) {
-    this.loading = true;
-    const jugador = this.jugadoresService.getAllJugadores().find((j) => j.id === id);
-
-    if (jugador) {
-      this.poblarFormulario(jugador);
-      this.loading = false;
-    } else {
-      this.errorMessage = 'No se encontró la información del jugador.';
-      this.loading = false;
-    }
-    this.cdr.detectChanges();
+    // Cambiamos la búsqueda local por una petición al servicio
+    this.jugadoresService.getJugadorById(id).subscribe({
+      next: (jugador) => {
+        if (jugador) {
+          this.poblarFormulario(jugador);
+        } else {
+          this.errorMessage = 'El servidor no devolvió datos para este jugador.';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar jugador:', err);
+        this.errorMessage = 'Hubo un error al conectar con el servidor para obtener los datos.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  poblarFormulario(j: Jugador) {
+  poblarFormulario(j: any) {
+    // Usamos any para acceder a las URLs de archivos
     const partesNombre = j.nombreCompleto.split(', ');
     this.jugadorData = {
       dni: j.dni,
@@ -113,17 +123,35 @@ export class JugadorFormComponent implements OnInit {
       tutorPhone: j.tutorPhone || '',
       peso: j.peso,
       altura: j.altura,
-      tipoFicha: j.tipoFicha || 'Jugador Activo',
-      clubId: j.clubId, // Mantenemos el club original
+      estado: j.estado || 'Pendiente',
+      clubId: j.clubId,
     };
 
     this.birthDate = j.fechaNacimiento.split('T')[0];
     this.selectedHand = j.manoHabil || 'Derecha';
     this.onDateChange(this.birthDate);
-    this.buscarNombreClub(j.clubId); // Actualizar nombre en edición
+    this.buscarNombreClub(j.clubId);
+
+    // RECONOCER ARCHIVOS EXISTENTES
+    if (j.fichaMedicaUrl) {
+      this.fileNames.fichaMedica = 'Archivo guardado'; // Esto activa el progreso
+      this.urlsExistentes.fichaMedica = j.fichaMedicaUrl;
+    }
+    if (j.autorizacionUrl) {
+      this.fileNames.autorizacionPadres = 'Archivo guardado';
+      this.urlsExistentes.autorizacionPadres = j.autorizacionUrl;
+    }
+
+    this.cdr.detectChanges();
   }
 
-  // --- MÉTODOS DE APOYO ---
+  verArchivo(tipo: 'fichaMedica' | 'autorizacionPadres') {
+    const url = this.urlsExistentes[tipo];
+    if (url) {
+      // Ajusta la URL base según tu entorno (localhost o VPS)
+      window.open(`http://localhost:3000${url}`, '_blank');
+    }
+  }
 
   get progress(): number {
     const fields = [
@@ -131,8 +159,13 @@ export class JugadorFormComponent implements OnInit {
       this.jugadorData.apellidos,
       this.jugadorData.nombres,
       this.birthDate,
-      this.jugadorData.email,
+      this.fileNames.fichaMedica,
     ];
+
+    if (this.isMinor) {
+      fields.push(this.fileNames.autorizacionPadres);
+    }
+
     const completed = fields.filter((f) => !!f).length;
     return Math.round((completed / fields.length) * 100);
   }
@@ -151,39 +184,59 @@ export class JugadorFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  onFileChange(event: any, type: 'fichaMedica' | 'autorizacionPadres') {
+    const file = event.target.files[0];
+    if (file) {
+      this.fileNames[type] = file.name;
+      this.files[type] = file;
+      this.cdr.detectChanges();
+    }
+  }
+
   onFinalize() {
     this.errorMessage = '';
-    if (!this.jugadorData.dni || !this.jugadorData.nombres || !this.birthDate) {
-      this.errorMessage = 'Por favor, completa los campos obligatorios.';
+
+    if (!this.fileNames.fichaMedica) {
+      this.errorMessage = 'La Ficha Médica es obligatoria.';
       this.cdr.detectChanges();
       return;
     }
 
-    this.loading = true;
+    if (this.isMinor && !this.fileNames.autorizacionPadres) {
+      this.errorMessage = 'Los menores requieren Autorización de Padres.';
+      this.cdr.detectChanges();
+      return;
+    }
 
-    // EL PAYLOAD USA EL clubId FILTRADO (EL DEL CLUB SELECCIONADO)
-    const payload = {
-      ...this.jugadorData,
-      nombreCompleto: `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`,
-      fechaNacimiento: this.birthDate,
-      categoria: this.selectedCategory,
-      manoHabil: this.selectedHand,
-    };
+    if (!this.jugadorData.dni || !this.jugadorData.nombres || !this.birthDate) {
+      this.errorMessage = 'Completa los datos obligatorios.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const formData = new FormData();
+    Object.keys(this.jugadorData).forEach((key) => formData.append(key, this.jugadorData[key]));
+    formData.append('nombreCompleto', `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`);
+    formData.append('fechaNacimiento', this.birthDate);
+    formData.append('categoria', this.selectedCategory);
+    formData.append('manoHabil', this.selectedHand);
+
+    if (this.files.fichaMedica) formData.append('fichaMedica', this.files.fichaMedica);
+    if (this.isMinor && this.files.autorizacionPadres)
+      formData.append('autorizacionPadres', this.files.autorizacionPadres);
 
     const request =
       this.isEditMode && this.jugadorId
-        ? this.jugadoresService.updateJugador(this.jugadorId, payload)
-        : this.jugadoresService.addJugador(payload);
+        ? this.jugadoresService.updateJugador(this.jugadorId, formData as any)
+        : this.jugadoresService.addJugador(formData as any);
 
     request.subscribe({
       next: () => {
-        this.loading = false;
-        // Volver atrás para mantener el club seleccionado en la lista
+        toast.success(this.isEditMode ? 'Jugador actualizado' : 'Inscripción finalizada');
         window.history.back();
       },
       error: (err) => {
-        this.loading = false;
-        this.errorMessage = err.error?.error || 'Error al procesar la solicitud.';
+        this.errorMessage = err.error?.error || 'Error en la solicitud.';
         this.cdr.detectChanges();
       },
     });
@@ -195,14 +248,6 @@ export class JugadorFormComponent implements OnInit {
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     return age;
-  }
-
-  onFileChange(event: any, type: 'certificado' | 'dniFrontal') {
-    const file = event.target.files[0];
-    if (file) {
-      this.fileNames[type] = file.name;
-      this.cdr.detectChanges();
-    }
   }
 
   onHandChange(hand: string) {

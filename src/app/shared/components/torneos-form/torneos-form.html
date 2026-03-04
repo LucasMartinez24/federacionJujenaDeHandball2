@@ -1,0 +1,162 @@
+<div class="flex flex-col h-full bg-slate-950">
+  <main class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+
+      <form [formGroup]="torneoForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+        <div class="bg-bg-dark-card rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+          <div class="p-6 md:p-8 border-b border-white/5">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">edit_note</span> Información General
+            </h3>
+          </div>
+          <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium text-slate-300">Nombre del Torneo</label>
+              <input formControlName="nombre"
+                class="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary/40 text-white outline-none transition-all"
+                type="text" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">Categoría</label>
+              <div class="relative">
+                <select formControlName="categoria"
+                  class="w-full cursor-pointer bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white appearance-none outline-none focus:ring-2 focus:ring-primary/40 transition-all">
+                  <option value="Primera División A" class="bg-bg-dark-card text-white">Primera División A</option>
+                  <option value="Primera División B" class="bg-bg-dark-card text-white">Primera División B</option>
+                  <option value="Juveniles Sub-18" class="bg-bg-dark-card text-white">Juveniles Sub-18</option>
+                  <option value="Cadetes" class="bg-bg-dark-card text-white">Cadetes</option>
+                  <option value="Menores" class="bg-bg-dark-card text-white">Menores</option>
+                  <option value="Infantiles" class="bg-bg-dark-card text-white">Infantiles</option>
+                </select>
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">Rama</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" (click)="setRama('Male')"
+                  [ngClass]="torneoForm.get('rama')?.value === 'Male' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 bg-white/5 text-slate-400'"
+                  class="py-3 rounded-xl border font-bold text-sm transition-all cursor-pointer">Masculino</button>
+                <button type="button" (click)="setRama('Female')"
+                  [ngClass]="torneoForm.get('rama')?.value === 'Female' ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 bg-white/5 text-slate-400'"
+                  class="py-3 rounded-xl border font-bold text-sm transition-all cursor-pointer">Femenino</button>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">Fecha de Inicio</label>
+              <input formControlName="fechaInicio"
+                class="w-full cursor-pointer bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white [color-scheme:dark] outline-none"
+                type="date" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">Estado Inicial</label>
+              <div class="relative">
+                <select formControlName="estado"
+                  class="w-full cursor-pointer bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white appearance-none outline-none focus:ring-2 focus:ring-primary/40 transition-all">
+                  <option value="Upcoming" class="bg-bg-dark-card text-white">Próximo (Upcoming)</option>
+                  <option value="In Progress" class="bg-bg-dark-card text-white">En Curso (In Progress)</option>
+                  <option value="Draft" class="bg-bg-dark-card text-white">Borrador (Draft)</option>
+                </select>
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-bg-dark-card rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+          <div class="p-6 md:p-8 border-b border-white/5">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">account_tree</span> Estructura de la Competición
+            </h3>
+          </div>
+          <div class="p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <label class="radio-card cursor-pointer group">
+                <input formControlName="formato" class="hidden" type="radio" value="elimination" />
+                <div
+                  class="radio-card-content h-full p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                  <span class="material-symbols-outlined text-3xl text-primary mb-3">account_tree</span>
+                  <p class="font-bold text-white mb-1">Eliminación</p>
+                  <p class="text-xs text-slate-400">Knockout directo (Playoffs).</p>
+                </div>
+              </label>
+
+              <label class="radio-card cursor-pointer group">
+                <input formControlName="formato" class="hidden" type="radio" value="league" />
+                <div
+                  class="radio-card-content h-full p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                  <span class="material-symbols-outlined text-3xl text-primary mb-3">format_list_numbered</span>
+                  <p class="font-bold text-white mb-1">Liga</p>
+                  <p class="text-xs text-slate-400">Todos contra todos por puntos.</p>
+                </div>
+              </label>
+
+              <label class="radio-card cursor-pointer group">
+                <input formControlName="formato" class="hidden" type="radio" value="super4" />
+                <div
+                  class="radio-card-content h-full p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                  <span class="material-symbols-outlined text-3xl text-primary mb-3">star</span>
+                  <p class="font-bold text-white mb-1">Liga + Super 4</p>
+                  <p class="text-xs text-slate-400">Fase regular y Final Four.</p>
+                </div>
+              </label>
+            </div>
+
+            <div *ngIf="torneoForm.get('formato')?.value !== 'elimination'"
+              class="mt-6 flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+              <input type="checkbox" formControlName="idaVuelta"
+                class="size-5 rounded bg-slate-800 border-white/10 text-primary cursor-pointer focus:ring-0">
+              <label class="text-sm text-slate-300 cursor-pointer" (click)="toggleIdaVuelta()">¿Partidos de Ida y
+                Vuelta?</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-bg-dark-card rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+          <div class="p-6 md:p-8 border-b border-white/5">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">palette</span> Tema Visual (colorClase)
+            </h3>
+          </div>
+          <div class="p-6 md:p-8">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              <div *ngFor="let theme of themes" (click)="setTheme(theme.class)"
+                class="relative group cursor-pointer text-center">
+                <div [class]="'h-20 rounded-xl bg-gradient-to-br border-2 transition-all ' + theme.class"
+                  [ngClass]="torneoForm.get('colorClase')?.value === theme.class ? 'border-white ring-4 ring-primary/20' : 'border-transparent'">
+                </div>
+                <p class="text-[10px] mt-2 font-bold uppercase tracking-tighter"
+                  [ngClass]="torneoForm.get('colorClase')?.value === theme.class ? 'text-white' : 'text-slate-500'">
+                  {{ theme.name }}
+                </p>
+                <div *ngIf="torneoForm.get('colorClase')?.value === theme.class"
+                  class="absolute top-2 right-2 size-5 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <span class="material-symbols-outlined text-primary text-sm font-bold">check</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 pt-4">
+          <button type="button" routerLink="/torneos"
+            class="flex-1 md:flex-none order-2 md:order-1 px-8 py-4 rounded-xl border border-white/10 text-slate-400 font-bold hover:bg-white/5 hover:text-white transition-all cursor-pointer">
+            Descartar Cambios
+          </button>
+          <button type="submit" [disabled]="loading || torneoForm.invalid"
+            class="flex-1 order-1 md:order-2 bg-primary text-white px-10 py-4 rounded-xl font-bold shadow-xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined">{{ loading ? 'sync' : 'save' }}</span>
+            {{ loading ? 'Guardando...' : 'Guardar Torneo' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>

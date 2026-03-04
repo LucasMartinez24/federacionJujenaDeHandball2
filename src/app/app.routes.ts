@@ -42,6 +42,28 @@ export const routes: Routes = [
     title: 'Crear Club - Federación',
   },
   {
+    path: 'torneos',
+    loadComponent: () => import('./shared/components/torneos/torneos').then((m) => m.Torneos),
+    canActivate: [adminGuard],
+    title: 'Torneos - Federación',
+  },
+  {
+    path: 'torneo-create',
+    loadComponent: () =>
+      import('./shared/components/torneos-form/torneos-form').then((m) => m.TorneosForm),
+    canActivate: [adminGuard],
+    title: 'Crear Torneo - Federación',
+  },
+  {
+    path: 'fixture-generator/:id',
+    loadComponent: () =>
+      import('./shared/components/fixture-generator/fixture-generator').then(
+        (m) => m.FixtureGenerator,
+      ),
+    canActivate: [adminGuard],
+    title: 'Generador de Fixture - Federación',
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

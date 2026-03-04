@@ -1,35 +1,60 @@
 <div class="min-h-screen w-full flex items-center justify-center bg-charcoal p-4 lg:p-8">
-
-  <div class="w-full max-w-[850px] animate-fade-in">
+  <div class="w-full max-w-212.5 animate-fade-in">
     <div class="relative bg-charcoal-card rounded-[2.5rem] border border-charcoal-border shadow-2xl overflow-hidden">
-
       <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 blur-[100px] rounded-full"></div>
 
       <div class="relative p-10 lg:p-16">
         <div class="text-center mb-12">
-          <h2 class="text-3xl lg:text-4xl font-bold text-white tracking-tight">
-            Nuevo Club <span class="text-primary">Afiliado</span>
+          <h2 class="text-3xl font-bold text-white">
+            <ng-container *ngIf="isEditMode; else newClub">Editar <span class="text-primary">Club</span></ng-container>
+            <ng-template #newClub>Nuevo Club <span class="text-primary">Afiliado</span></ng-template>
           </h2>
           <p class="text-muted-text mt-3 text-sm lg:text-base">Registro oficial de instituciones - Federación Jujeña</p>
         </div>
 
         <form [formGroup]="clubForm" (ngSubmit)="onSubmit()" class="space-y-10">
 
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div class="md:col-span-9 group-input">
-              <label class="form-label-new">Nombre de la Institución</label>
-              <div class="relative">
-                <input formControlName="nombre" class="form-input-new" placeholder="Ej: Club ..." type="text" />
-                <div class="input-focus-line"></div>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+
+            <div class="md:col-span-3 flex flex-col items-center group-input">
+              <label class="form-label-new mb-4 w-full text-center md:text-left">Escudo / Logo</label>
+              <div class="relative w-32 h-32 lg:w-36 lg:h-36">
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden" #logoInput />
+                <div (click)="logoInput.click()"
+                  class="w-full h-full rounded-3xl border-2 border-dashed border-charcoal-border hover:border-primary/50 bg-charcoal-surface flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden">
+
+                  <div *ngIf="!logoPreview"
+                    class="flex flex-col items-center text-muted-text group-hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-3xl">add_photo_alternate</span>
+                    <span class="text-[10px] mt-2 font-bold uppercase tracking-wider">Subir</span>
+                  </div>
+
+                  <img *ngIf="logoPreview" [src]="logoPreview" class="w-full h-full object-contain p-2" />
+
+                  <div *ngIf="logoPreview"
+                    class="absolute inset-0 bg-charcoal/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <span class="material-symbols-outlined text-white">edit</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="md:col-span-3 group-input">
-              <label class="form-label-new">Siglas</label>
-              <div class="relative">
-                <input formControlName="siglas" class="form-input-new uppercase text-center" placeholder="CAL"
-                  maxlength="5" type="text" />
-                <div class="input-focus-line"></div>
+            <div class="md:col-span-9 grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div class="md:col-span-9 group-input">
+                <label class="form-label-new">Nombre de la Institución</label>
+                <div class="relative">
+                  <input formControlName="nombre" class="form-input-new" placeholder="Ej: Club ..." type="text" />
+                  <div class="input-focus-line"></div>
+                </div>
+              </div>
+
+              <div class="md:col-span-3 group-input">
+                <label class="form-label-new">Siglas</label>
+                <div class="relative">
+                  <input formControlName="siglas" class="form-input-new uppercase text-center" placeholder="CAL"
+                    maxlength="5" type="text" />
+                  <div class="input-focus-line"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -74,9 +99,9 @@
               class="flex-1 px-8 py-5 rounded-2xl border border-charcoal-border text-muted-text font-semibold hover:bg-charcoal-surface hover:text-white transition-all cursor-pointer">
               Cancelar
             </button>
-            <button [disabled]="clubForm.invalid || loading" type="submit"
+            <button [disabled]="clubForm.invalid" type="submit"
               class="flex-1 px-8 py-5 rounded-2xl bg-primary text-white font-bold shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-30 cursor-pointer">
-              {{ loading ? 'Registrando...' : 'Confirmar Registro' }}
+              {{ isEditMode ? 'Guardar Cambios' : 'Crear Club' }}
             </button>
           </div>
         </form>

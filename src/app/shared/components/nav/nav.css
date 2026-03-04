@@ -1,9 +1,25 @@
 :host {
   display: block;
-  width: 16rem;
-  /* w-64 = 16rem */
   height: 100vh;
   flex-shrink: 0;
+  transition: width 0.3s ease;
+  z-index: 100;
+}
+
+/* ESCRITORIO: Mantiene la esencia original */
+@media (min-width: 1024px) {
+  :host {
+    width: 16rem;
+    /* w-64 */
+  }
+}
+
+/* MÓVIL: El host no ocupa espacio para que el router-outlet sea 100% */
+@media (max-width: 1023px) {
+  :host {
+    width: 0;
+    position: relative;
+  }
 }
 
 .nav-item {
@@ -21,20 +37,8 @@
   background-color: #475569;
 }
 
-.nav-item:dark {
-  color: #94a3b8;
-}
-
-.nav-item:dark:hover {
-  background-color: #1e293b;
-}
-
 .active-link {
   background-color: var(--primary-color, #3b82f6);
   color: white;
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
-}
-
-.active-link:hover {
-  background-color: var(--primary-color, #3b82f6);
 }

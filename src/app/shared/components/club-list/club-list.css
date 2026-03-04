@@ -47,3 +47,22 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+select {
+  color-scheme: dark;
+}
+
+/* Centrado del texto dentro del select en algunos navegadores */
+select option {
+  background-color: #0f172a;
+  /* Slate-900 */
+  color: #cbd5e1;
+  /* Slate-300 */
+}
+
+/* Eliminar el estilo por defecto de Windows/Mac si es necesario */
+.appearance-none {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}

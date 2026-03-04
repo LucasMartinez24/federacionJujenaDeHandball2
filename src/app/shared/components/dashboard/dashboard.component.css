@@ -6,6 +6,16 @@
   animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.overflow-x-auto {
+  background: linear-gradient(to right, #0f172a 30%, rgba(15, 23, 42, 0)),
+    linear-gradient(to right, rgba(15, 23, 42, 0), #0f172a 70%) 0 100%,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, .5), rgba(0, 0, 0, 0)),
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, .5), rgba(0, 0, 0, 0)) 0 100%;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

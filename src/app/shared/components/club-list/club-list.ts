@@ -1,20 +1,23 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core'; // 1. Importamos ChangeDetectorRef
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ClubesService, Club } from '../../../core/services/clubes.service';
-import { Jugador } from '../../../core/services/jugadores.service';
+import { JugadoresService, Jugador } from '../../../core/services/jugadores.service'; // Inyectamos el servicio
+import { toast } from 'ngx-sonner';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-club-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './club-list.html',
   styleUrl: './club-list.css',
 })
 export class ClubList implements OnInit {
   private clubesService = inject(ClubesService);
+  private jugadoresService = inject(JugadoresService); // Inyectamos para gestionar estados
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef); // 2. Inyectamos el detector de cambios
+  private cdr = inject(ChangeDetectorRef);
 
   clubes: Club[] = [];
   selectedClub: Club | null = null;
@@ -23,42 +26,143 @@ export class ClubList implements OnInit {
   ngOnInit(): void {
     this.loadClubs();
   }
+  editarClub(club: Club): void {
+    this.router.navigate(['/club-create'], {
+      queryParams: { id: club.id, edit: 'true' },
+    });
+  }
 
   loadClubs(): void {
-    console.log('[ClubList] Intentando llamar al servicio...');
     this.isLoading = true;
-
     this.clubesService.getClubes().subscribe({
       next: (res) => {
-        console.log('[ClubList] ¡Llegaron datos!', res);
         this.clubes = res || [];
-
-        if (this.clubes.length > 0) {
+        if (this.clubes.length > 0 && !this.selectedClub) {
           this.selectedClub = this.clubes[0];
         }
-
         this.isLoading = false;
-
-        // 3. FUNCIONALIDAD DE CARGA RÁPIDA:
-        // Forzamos a Angular a que detecte los cambios y actualice el HTML inmediatamente
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('[ClubList] Error en suscripción:', err);
+        console.error('Error al cargar clubes:', err);
         this.isLoading = false;
         this.cdr.detectChanges();
       },
-      complete: () => console.log('[ClubList] Petición finalizada'),
     });
   }
 
   selectClub(club: Club): void {
     this.selectedClub = club;
-    // Forzamos la actualización visual al cambiar de club seleccionado
     this.cdr.detectChanges();
   }
 
-  // --- FUNCIONALIDADES DE JUGADORES ---
+  // --- NUEVA LÓGICA: CAMBIAR ESTADO (APROBAR/RECHAZAR) ---
+  cambiarEstado(jugador: Jugador, nuevoEstado: string): void {
+    // Creamos el FormData para el backend (nuestro PUT recibe multipart/form-data)
+    const formData = new FormData();
+    formData.append('estado', nuevoEstado);
+
+    this.jugadoresService.updateJugador(jugador.id, formData as any).subscribe({
+      next: () => {
+        // Actualizamos localmente el estado para reflejar el cambio en la tabla
+        jugador.estado = nuevoEstado;
+
+        const config =
+          nuevoEstado === 'Aprobado'
+            ? { msg: 'Jugador Habilitado', icon: 'check_circle' }
+            : { msg: 'Ficha Rechazada', icon: 'block' };
+
+        toast.success(config.msg, {
+          description: `${jugador.nombreCompleto} ha sido actualizado.`,
+        });
+
+        this.cdr.detectChanges();
+      },
+      error: () => toast.error('No se pudo cambiar el estado del jugador'),
+    });
+  }
+
+  // --- NUEVA LÓGICA: ELIMINAR JUGADOR ---
+  showDeleteModal: boolean = false;
+  playerToDelete: { id: string; name: string } | null = null;
+
+  confirmDelete(jugador: Jugador): void {
+    this.playerToDelete = { id: jugador.id, name: jugador.nombreCompleto };
+    this.showDeleteModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeModal(): void {
+    this.showDeleteModal = false;
+    this.playerToDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  executeDelete(): void {
+    if (!this.playerToDelete) return;
+
+    const id = this.playerToDelete.id;
+    const nombre = this.playerToDelete.name;
+
+    this.jugadoresService.deleteJugador(id).subscribe({
+      next: () => {
+        // 1. Filtramos la lista del club seleccionado localmente
+        if (this.selectedClub && this.selectedClub.jugadores) {
+          this.selectedClub.jugadores = this.selectedClub.jugadores.filter((j) => j.id !== id);
+        }
+
+        // 2. Cerramos el modal y notificamos
+        this.closeModal();
+        toast.warning('Jugador eliminado', {
+          description: `Se ha borrado la ficha de ${nombre} y sus documentos.`,
+        });
+
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        toast.error('Error al eliminar', {
+          description: 'No se pudo completar la acción en el servidor.',
+        });
+      },
+    });
+  }
+  // --- ESTADÍSTICAS DINÁMICAS ---
+
+  getTotalRegistrosPendientes(): number {
+    return this.clubes.reduce((acc, club) => {
+      const pendientes =
+        club.jugadores?.filter((j) => j.estado === 'Pendiente' || !j.estado).length || 0;
+      return acc + pendientes;
+    }, 0);
+  }
+  searchText: string = '';
+  statusFilter: string = 'Todos';
+
+  // Getter dinámico para filtrar la lista
+  get jugadoresFiltrados(): Jugador[] {
+    if (!this.selectedClub || !this.selectedClub.jugadores) return [];
+
+    return this.selectedClub.jugadores.filter((j) => {
+      // 1. Filtro por Estado
+      const matchesStatus =
+        this.statusFilter === 'Todos' || (j.estado || 'Pendiente') === this.statusFilter;
+
+      // 2. Filtro por Texto (Nombre o DNI)
+      const term = this.searchText.toLowerCase().trim();
+      const matchesText =
+        !term || j.nombreCompleto.toLowerCase().includes(term) || j.dni.toString().includes(term);
+
+      return matchesStatus && matchesText;
+    });
+  }
+  getTotalAllJugadores(): number {
+    return this.clubes.reduce((acc, club) => {
+      const aprobados = club.jugadores?.filter((j) => j.estado === 'Aprobado').length || 0;
+      return acc + aprobados;
+    }, 0);
+  }
+
+  // --- NAVEGACIÓN Y HELPERS ---
 
   navegarCrearJugador(): void {
     if (this.selectedClub) {
@@ -68,23 +172,12 @@ export class ClubList implements OnInit {
     }
   }
 
-  // --- FUNCIONALIDAD: EDITAR JUGADOR ---
-  // Envía el ID del jugador en la ruta y el clubId por queryParams
   editarJugador(jugador: Jugador): void {
     if (this.selectedClub) {
       this.router.navigate(['/jugador-form', jugador.id], {
-        queryParams: {
-          clubId: this.selectedClub.id,
-          edit: 'true',
-        },
+        queryParams: { clubId: this.selectedClub.id, edit: 'true' },
       });
     }
-  }
-
-  // --- HELPERS ---
-
-  getTotalAllJugadores(): number {
-    return this.clubes.reduce((acc, club) => acc + (club.jugadores?.length || 0), 0);
   }
 
   getInitials(name: string): string {
@@ -99,5 +192,37 @@ export class ClubList implements OnInit {
 
   getTotalJugadores(club: Club): number {
     return club.jugadores ? club.jugadores.length : 0;
+  }
+
+  //eliminar club
+  showDeleteModalClub = false;
+  clubToDelete: any = null;
+
+  // Abrir modal
+  confirmDeleteClub(club: any) {
+    this.clubToDelete = club;
+    this.showDeleteModalClub = true;
+  }
+
+  // Ejecutar eliminación
+  executeDeleteClub() {
+    if (!this.clubToDelete) return;
+
+    this.clubesService.deleteClub(this.clubToDelete.id).subscribe({
+      next: () => {
+        toast.success('Club eliminado', {
+          description: `El club ${this.clubToDelete.nombre} ha sido removido.`,
+        });
+        this.showDeleteModalClub = false;
+        this.loadClubs(); // Recargar la lista
+        this.selectedClub = null; // Limpiar selección
+      },
+      error: (err) => {
+        toast.error('Error al eliminar', {
+          description: err.error?.error || 'No se pudo completar la acción.',
+        });
+        this.showDeleteModalClub = false;
+      },
+    });
   }
 }

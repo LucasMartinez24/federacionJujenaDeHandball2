@@ -1,8 +1,9 @@
-<div class="flex h-screen w-full overflow-hidden bg-white dark:bg-slate-950">
-  <app-nav *ngIf="showNav" class="flex-shrink-0"></app-nav>
+<div class="flex h-screen w-full overflow-hidden bg-slate-950 relative">
 
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-950">
+  <app-nav *ngIf="showNav"></app-nav>
+
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
+    <main class="flex-1 overflow-y-auto custom-scrollbar">
       <ngx-sonner-toaster position="bottom-center" [richColors]="true" />
 
       <router-outlet></router-outlet>

@@ -1,0 +1,104 @@
+<div class="flex flex-col h-full bg-slate-950">
+  <div class="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-white">Torneos</h1>
+      <p class="text-slate-400 mt-1">Gestiona las ligas, copas y torneos activos de la federación.</p>
+    </div>
+    <button (click)="crearTorneo()"
+      class="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+      <span class="material-symbols-outlined">add</span>
+      <span>Crear Nuevo Torneo</span>
+    </button>
+  </div>
+
+  <div class="px-8 mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div class="flex items-center gap-1 p-1 bg-white/5 rounded-xl border border-white/5 w-fit">
+      <button (click)="setFiltro('Active')" [class.bg-primary]="filtroActual === 'Active'"
+        [class.text-white]="filtroActual === 'Active'"
+        class="px-6 py-2 rounded-lg text-sm font-bold transition-all text-slate-400">Activos</button>
+      <button (click)="setFiltro('Upcoming')" [class.bg-primary]="filtroActual === 'Upcoming'"
+        [class.text-white]="filtroActual === 'Upcoming'"
+        class="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400">Próximos</button>
+      <button (click)="setFiltro('Archive')" [class.bg-primary]="filtroActual === 'Archive'"
+        [class.text-white]="filtroActual === 'Archive'"
+        class="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400">Archivo</button>
+    </div>
+
+    <div class="relative flex-1 max-w-md">
+      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+      <input [(ngModel)]="searchText" type="text" placeholder="Buscar torneo o categoría..."
+        class="w-full bg-white/5 border-none rounded-2xl py-2.5 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 text-sm text-white placeholder-slate-500">
+    </div>
+  </div>
+
+  <main class="flex-1 overflow-y-auto custom-scrollbar px-8 pb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+
+      <div (click)="crearTorneo()"
+        class="bg-white/[0.02] rounded-2xl border border-dashed border-white/10 p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/50 hover:bg-white/[0.04] transition-all min-h-[350px]">
+        <div
+          class="size-16 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover:bg-primary group-hover:text-white transition-all mb-4">
+          <span class="material-symbols-outlined text-3xl">add</span>
+        </div>
+        <h3 class="text-lg font-bold text-white">Nueva Competición</h3>
+        <p class="text-sm text-slate-500 mt-2 max-w-[200px]">Define una nueva liga, copa o torneo relámpago.</p>
+      </div>
+
+      <div *ngFor="let torneo of torneos"
+        class="bg-slate-900 rounded-2xl border border-white/5 overflow-hidden shadow-2xl transition-all hover:border-white/10 group">
+        <div [class]="'h-32 bg-gradient-to-br p-6 flex items-start justify-between ' + torneo.colorClase">
+          <div class="size-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+            <span class="material-symbols-outlined text-3xl">emoji_events</span>
+          </div>
+          <span [ngClass]="torneo.estado === 'In Progress' ? 'bg-emerald-500' : 'bg-blue-500'"
+            class="px-3 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-wider">
+            {{torneo.estado}}
+          </span>
+        </div>
+
+        <div class="p-6 -mt-10">
+          <div class="bg-slate-800 rounded-xl p-4 shadow-xl border border-white/5 mb-4">
+            <h3 class="text-xl font-bold truncate text-white">{{torneo.nombre}}</h3>
+            <p class="text-sm text-primary font-semibold">{{torneo.categoria}}</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-400">Equipos Inscritos</span>
+              <span class="font-bold text-white">{{torneo.equiposCount}} Equipos</span>
+            </div>
+
+            <div *ngIf="torneo.estado === 'In Progress'">
+              <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-primary h-full transition-all duration-500" [style.width.%]="torneo.progreso"></div>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Progreso</span>
+                <span>{{torneo.progreso}}%</span>
+              </div>
+            </div>
+
+            <div *ngIf="torneo.estado === 'Upcoming'"
+              class="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+              <p class="text-xs text-orange-200 leading-relaxed font-medium">
+                Inicia el {{ torneo.fechaInicio | date: 'dd/MM/yyyy' }}
+              </p>
+            </div>
+
+            <div class="pt-4 border-t border-white/5 grid grid-cols-2 gap-3">
+              <a [routerLink]="['/fixture-generator', torneo.id]"
+                class="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-colors cursor-pointer">
+                Gestionar Fixture
+              </a>
+              <button
+                class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white text-black text-sm font-bold hover:bg-slate-200 transition-colors">
+                Fixture
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

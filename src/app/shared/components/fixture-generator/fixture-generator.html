@@ -1,0 +1,130 @@
+<main class="flex-1 overflow-y-auto custom-scrollbar p-8 bg-slate-950">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <h2 class="text-3xl font-bold tracking-tight text-white font-display">Generador de Fixture</h2>
+        <p class="text-slate-400 mt-1">Selecciona los clubes y organiza las jornadas del torneo.</p>
+      </div>
+      <div class="flex gap-3">
+        <button (click)="generar()"
+          class="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/25 hover:brightness-110 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-lg">auto_awesome</span> Generar Partidos
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+
+      <div class="xl:col-span-4 space-y-6">
+        <section class="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">groups</span> Clubes Participantes
+            </h3>
+            <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full">
+              {{clubesSeleccionados.length}} Seleccionados
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-2">
+            <div *ngFor="let club of clubesDisponibles" (click)="toggleClub(club)"
+              [ngClass]="isSeleccionado(club.id) ? 'bg-primary/10 border-primary/20' : 'bg-white/5 border-transparent'"
+              class="flex items-center justify-between p-3 rounded-xl border cursor-pointer hover:bg-white/10 transition-all group">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center">
+                  <img [src]="'http://localhost:3000' + club.logoUrl" [alt]="club.nombre">
+                </div>
+                <span class="text-sm font-semibold text-white">{{club.nombre}}</span>
+              </div>
+              <span class="material-symbols-outlined"
+                [ngClass]="isSeleccionado(club.id) ? 'text-primary' : 'text-slate-600 group-hover:text-slate-400'">
+                {{isSeleccionado(club.id) ? 'check_circle' : 'add_circle'}}
+              </span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="xl:col-span-8 space-y-8">
+        <div *ngFor="let jornada of jornadas" class="space-y-4">
+          <div class="flex items-center gap-4">
+            <h4 class="text-lg font-bold text-white font-display">Jornada {{jornada.numero}}</h4>
+            <div class="h-[1px] flex-1 bg-white/5"></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div *ngFor="let partido of jornada.partidos"
+              class="bg-slate-900 border border-white/5 rounded-2xl p-5 shadow-sm group">
+              <div class="flex items-center justify-around gap-2 mb-6">
+                <div class="text-center w-24">
+                  <p class="text-xs font-bold truncate text-white">{{partido.local.nombre}}</p>
+                </div>
+                <div class="flex flex-col items-center">
+                  <div
+                    class="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center text-xs font-bold italic text-slate-500">
+                    VS</div>
+                </div>
+                <div class="text-center w-24">
+                  <p class="text-xs font-bold truncate text-white">{{partido.visitante.nombre}}</p>
+                </div>
+              </div>
+              <button (click)="abrirProgramador(partido)"
+                class="w-full py-2.5 bg-primary/5 text-primary rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-primary/10 hover:bg-primary hover:text-white transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-sm">calendar_add_on</span> Programar Partido
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="jornadas.length > 0" class="pt-8 border-t border-white/5 flex justify-end gap-3">
+          <button
+            class="px-6 py-3 border border-white/10 text-slate-400 rounded-xl font-bold text-sm hover:bg-white/5 transition-colors cursor-pointer">Guardar
+            Borrador</button>
+          <button (click)="publicarFixture()" [disabled]="jornadas.length === 0"
+            class="px-8 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-xl shadow-primary/20 hover:brightness-110 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            Publicar Calendario Oficial
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showModal"
+    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl border border-white/10 p-8">
+      <h3 class="text-xl font-bold text-white mb-6">Programar Partido</h3>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+          <span class="font-bold text-white text-sm">{{partidoAProgramar?.local.nombre}}</span>
+          <span class="text-slate-500 italic text-xs font-black">VS</span>
+          <span class="font-bold text-white text-sm text-right">{{partidoAProgramar?.visitante.nombre}}</span>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] uppercase text-slate-500 font-bold ml-1">Fecha y Hora</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="date" [(ngModel)]="fechaTemp"
+              class="bg-slate-800 border-none rounded-xl py-3 px-4 text-white [color-scheme:dark] text-sm">
+            <input type="time" [(ngModel)]="horaTemp"
+              class="bg-slate-800 border-none rounded-xl py-3 px-4 text-white [color-scheme:dark] text-sm">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] uppercase text-slate-500 font-bold ml-1">Cancha / Sede</label>
+          <input type="text" [(ngModel)]="lugarTemp" placeholder="Ej: Microestadio Luján"
+            class="w-full bg-slate-800 border-none rounded-xl py-3 px-4 text-white text-sm placeholder:text-slate-600 focus:ring-2 focus:ring-primary">
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button (click)="showModal = false"
+            class="flex-1 py-3 bg-white/5 text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-white/10 transition-colors">Cancelar</button>
+          <button (click)="confirmarProgramacion()"
+            class="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-sm cursor-pointer shadow-lg shadow-primary/20 hover:brightness-110 transition-all">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
