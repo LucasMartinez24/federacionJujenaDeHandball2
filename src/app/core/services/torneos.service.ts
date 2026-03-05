@@ -10,11 +10,20 @@ export class TorneosService {
   getTorneos(): Observable<any[]> {
     return this.http.get<any[]>(this.url);
   }
-
+  getTorneoById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.url}/${id}`);
+  }
   crearTorneo(data: any): Observable<any> {
     return this.http.post(this.url, data);
   }
   updateTorneo(id: string, data: any): Observable<any> {
     return this.http.put(`${this.url}/${id}`, data);
+  }
+  deleteTorneo(id: string): Observable<any> {
+    return this.http.delete(`${this.url}/${id}`);
+  }
+  getTorneosPorClub(clubId: string): Observable<any[]> {
+    // Esta ruta debe estar definida en tu backend
+    return this.http.get<any[]>(`${this.url}/club/${clubId}`);
   }
 }

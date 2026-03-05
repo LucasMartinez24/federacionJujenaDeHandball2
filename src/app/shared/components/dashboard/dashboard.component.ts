@@ -14,6 +14,9 @@ import { toast } from 'ngx-sonner';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  descargarFicha(_t35: Jugador) {
+    throw new Error('Method not implemented.');
+  }
   private authService = inject(AuthService);
   private jugadoresService = inject(JugadoresService);
   private router = inject(Router);

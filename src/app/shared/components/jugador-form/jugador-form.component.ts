@@ -2,7 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef, HostListener } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { JugadoresService, Jugador } from '../../../core/services/jugadores.service';
+import { JugadoresService } from '../../../core/services/jugadores.service';
 import { ClubesService } from '../../../core/services/clubes.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toast } from 'ngx-sonner';
@@ -21,12 +21,14 @@ export class JugadorFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+
   windowWidth = window.innerWidth;
 
   @HostListener('window:resize')
   onResize() {
     this.windowWidth = window.innerWidth;
   }
+
   isEditMode: boolean = false;
   jugadorId: string | null = null;
   errorMessage: string = '';
@@ -52,14 +54,28 @@ export class JugadorFormComponent implements OnInit {
   selectedHand: string = 'Derecha';
   clubNombre: string = 'Cargando club...';
 
-  // Manejo de archivos y previsualización
-  fileNames = { fichaMedica: '', autorizacionPadres: '' };
-  files = { fichaMedica: null as File | null, autorizacionPadres: null as File | null };
-  urlsExistentes = { fichaMedica: '', autorizacionPadres: '' };
+  // Manejo de archivos y previsualización (Agregado fichaJugador)
+  fileNames = {
+    fichaMedica: '',
+    autorizacionPadres: '',
+    fichaJugador: '',
+  };
+
+  files = {
+    fichaMedica: null as File | null,
+    autorizacionPadres: null as File | null,
+    fichaJugador: null as File | null,
+  };
+
+  urlsExistentes = {
+    fichaMedica: '',
+    autorizacionPadres: '',
+    fichaJugador: '',
+  };
 
   ngOnInit() {
     this.jugadorId = this.route.snapshot.paramMap.get('id');
-    console.log('Jugador ID:', this.jugadorId); // Debug: Verificar ID recibido
+
     this.route.queryParams.subscribe((params) => {
       if (params['clubId']) {
         this.jugadorData.clubId = params['clubId'];
@@ -91,7 +107,6 @@ export class JugadorFormComponent implements OnInit {
   }
 
   cargarDatosJugador(id: string) {
-    // Cambiamos la búsqueda local por una petición al servicio
     this.jugadoresService.getJugadorById(id).subscribe({
       next: (jugador) => {
         if (jugador) {
@@ -103,14 +118,13 @@ export class JugadorFormComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar jugador:', err);
-        this.errorMessage = 'Hubo un error al conectar con el servidor para obtener los datos.';
+        this.errorMessage = 'Error al conectar con el servidor.';
         this.cdr.detectChanges();
       },
     });
   }
 
   poblarFormulario(j: any) {
-    // Usamos any para acceder a las URLs de archivos
     const partesNombre = j.nombreCompleto.split(', ');
     this.jugadorData = {
       dni: j.dni,
@@ -134,21 +148,25 @@ export class JugadorFormComponent implements OnInit {
 
     // RECONOCER ARCHIVOS EXISTENTES
     if (j.fichaMedicaUrl) {
-      this.fileNames.fichaMedica = 'Archivo guardado'; // Esto activa el progreso
+      this.fileNames.fichaMedica = 'Archivo guardado';
       this.urlsExistentes.fichaMedica = j.fichaMedicaUrl;
     }
     if (j.autorizacionUrl) {
       this.fileNames.autorizacionPadres = 'Archivo guardado';
       this.urlsExistentes.autorizacionPadres = j.autorizacionUrl;
     }
+    if (j.fichaJugadorUrl) {
+      this.fileNames.fichaJugador = 'Archivo guardado';
+      this.urlsExistentes.fichaJugador = j.fichaJugadorUrl;
+    }
 
     this.cdr.detectChanges();
   }
 
-  verArchivo(tipo: 'fichaMedica' | 'autorizacionPadres') {
+  verArchivo(tipo: 'fichaMedica' | 'autorizacionPadres' | 'fichaJugador') {
     const url = this.urlsExistentes[tipo];
     if (url) {
-      // Ajusta la URL base según tu entorno (localhost o VPS)
+      // Ajusta según tu URL de API (localhost:3000 o producción)
       window.open(`http://localhost:3000${url}`, '_blank');
     }
   }
@@ -160,6 +178,7 @@ export class JugadorFormComponent implements OnInit {
       this.jugadorData.nombres,
       this.birthDate,
       this.fileNames.fichaMedica,
+      this.fileNames.fichaJugador, // Campo obligatorio
     ];
 
     if (this.isMinor) {
@@ -184,7 +203,7 @@ export class JugadorFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  onFileChange(event: any, type: 'fichaMedica' | 'autorizacionPadres') {
+  onFileChange(event: any, type: 'fichaMedica' | 'autorizacionPadres' | 'fichaJugador') {
     const file = event.target.files[0];
     if (file) {
       this.fileNames[type] = file.name;
@@ -196,8 +215,15 @@ export class JugadorFormComponent implements OnInit {
   onFinalize() {
     this.errorMessage = '';
 
+    // Validaciones de archivos obligatorios
     if (!this.fileNames.fichaMedica) {
       this.errorMessage = 'La Ficha Médica es obligatoria.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (!this.fileNames.fichaJugador) {
+      this.errorMessage = 'La Ficha de Jugador (Fichaje FJH) es obligatoria.';
       this.cdr.detectChanges();
       return;
     }
@@ -209,21 +235,29 @@ export class JugadorFormComponent implements OnInit {
     }
 
     if (!this.jugadorData.dni || !this.jugadorData.nombres || !this.birthDate) {
-      this.errorMessage = 'Completa los datos obligatorios.';
+      this.errorMessage = 'Completa los datos personales obligatorios.';
       this.cdr.detectChanges();
       return;
     }
 
     const formData = new FormData();
-    Object.keys(this.jugadorData).forEach((key) => formData.append(key, this.jugadorData[key]));
+    Object.keys(this.jugadorData).forEach((key) => {
+      if (this.jugadorData[key] !== null) {
+        formData.append(key, this.jugadorData[key]);
+      }
+    });
+
     formData.append('nombreCompleto', `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`);
     formData.append('fechaNacimiento', this.birthDate);
     formData.append('categoria', this.selectedCategory);
     formData.append('manoHabil', this.selectedHand);
 
+    // Adjuntar archivos al FormData
     if (this.files.fichaMedica) formData.append('fichaMedica', this.files.fichaMedica);
-    if (this.isMinor && this.files.autorizacionPadres)
+    if (this.files.fichaJugador) formData.append('fichaJugador', this.files.fichaJugador);
+    if (this.isMinor && this.files.autorizacionPadres) {
       formData.append('autorizacionPadres', this.files.autorizacionPadres);
+    }
 
     const request =
       this.isEditMode && this.jugadorId
@@ -232,11 +266,11 @@ export class JugadorFormComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        toast.success(this.isEditMode ? 'Jugador actualizado' : 'Inscripción finalizada');
+        toast.success(this.isEditMode ? 'Jugador actualizado' : 'Inscripción finalizada con éxito');
         window.history.back();
       },
       error: (err) => {
-        this.errorMessage = err.error?.error || 'Error en la solicitud.';
+        this.errorMessage = err.error?.error || 'Error al procesar la solicitud.';
         this.cdr.detectChanges();
       },
     });

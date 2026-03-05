@@ -1,0 +1,172 @@
+<div class="flex-1 flex flex-col min-w-0 bg-slate-950 h-full overflow-hidden">
+  <header
+    class="h-auto min-h-[4rem] py-3 bg-panel-dark border-b border-border-dark flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 sticky top-0 z-20 gap-4">
+    <div class="flex items-center gap-4 w-full sm:w-auto">
+      <h2 class="text-base sm:text-lg font-bold truncate text-white uppercase tracking-tight">{{ torneoNombre }}</h2>
+    </div>
+
+    <div class="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
+      <button (click)="mostrarTabla = false"
+        [ngClass]="!mostrarTabla ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400'"
+        class="flex-1 sm:flex-none px-4 cursor-pointer py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">calendar_month</span> Fixture
+      </button>
+      <button (click)="mostrarTabla = true"
+        [ngClass]="mostrarTabla ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400'"
+        class="flex-1 sm:flex-none px-4 cursor-pointer py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">leaderboard</span> Posiciones
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 overflow-y-auto custom-scrollbar">
+    <ng-container *ngIf="!mostrarTabla">
+      <div class="sticky top-0 bg-slate-950 backdrop-blur-md border-b border-border-dark z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-8">
+          <div class="flex items-center overflow-x-auto no-scrollbar py-2 sm:py-4 gap-2">
+            <button *ngFor="let id of jornadasIds" (click)="cargarFixture(id)"
+              [ngClass]="jornadaSeleccionada === id ? 'text-primary' : 'text-slate-400'"
+              class="px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-bold relative transition-all flex-shrink-0 cursor-pointer">
+              <span>Fecha {{ id }}</span>
+              <div *ngIf="jornadaSeleccionada === id"
+                class="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(var(--primary-rgb),0.5)]">
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="max-w-6xl mx-auto p-4 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+          <div class="flex items-center gap-3">
+            <span
+              class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-xl">calendar_today</span>
+            <div>
+              <h3 class="text-lg sm:text-xl font-bold text-white">Fecha {{ jornadaSeleccionada }}</h3>
+              <p class="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider">
+                {{ esAdmin ? 'Gestión oficial de resultados' : 'Resultados y fixture oficial FJH' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div *ngFor="let partido of partidos"
+            class="bg-panel-dark border border-border-dark rounded-2xl p-4 sm:p-6 flex flex-col gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+              <div class="flex flex-row sm:flex-row-reverse items-center justify-start sm:justify-start gap-3">
+                <div
+                  class="size-10 sm:size-12 bg-zinc-800 rounded-xl flex items-center justify-center border border-border-dark shrink-0 p-2">
+                  <img *ngIf="partido.local.logoUrl" [src]="getLogo(partido.local.logoUrl)"
+                    class="w-full h-full object-contain">
+                </div>
+                <span class="font-bold text-sm text-white text-left sm:text-right flex-1 truncate">{{
+                  partido.local.nombre }}</span>
+              </div>
+              <div class="flex flex-col items-center justify-center bg-black/20 py-2 rounded-xl border border-white/5">
+                <div *ngIf="partido.estado === 'Finalizado'" class="text-2xl font-black text-primary tracking-widest">
+                  {{partido.golesLocal}} - {{partido.golesVisitante}}
+                </div>
+                <div *ngIf="partido.estado !== 'Finalizado'"
+                  class="text-[10px] font-black italic text-slate-600 uppercase tracking-widest">VS</div>
+              </div>
+              <div class="flex flex-row items-center gap-3">
+                <div
+                  class="size-10 sm:size-12 bg-zinc-800 rounded-xl flex items-center justify-center border border-border-dark shrink-0 p-2">
+                  <img *ngIf="partido.visitante.logoUrl" [src]="getLogo(partido.visitante.logoUrl)"
+                    class="w-full h-full object-contain">
+                </div>
+                <span class="font-bold text-sm text-white text-left flex-1 truncate">{{ partido.visitante.nombre
+                  }}</span>
+              </div>
+            </div>
+
+            <div
+              class="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-white/5 gap-4">
+              <div class="flex flex-wrap gap-4 sm:gap-8">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-slate-500 text-lg">location_on</span>
+                  <span class="text-xs font-semibold text-slate-200">{{ partido.lugar || 'Sede a definir' }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-lg"
+                    [ngClass]="partido.estado === 'Finalizado' ? 'text-emerald-500' : 'text-slate-500'">
+                    {{ partido.estado === 'Finalizado' ? 'check_circle' : 'schedule' }}
+                  </span>
+                  <span class="text-xs font-semibold text-slate-200">
+                    {{ partido.estado === 'Finalizado' ? 'Finalizado' : (partido.fecha | date: "d MMM • HH:mm" : '' :
+                    'es-AR') }}
+                  </span>
+                </div>
+              </div>
+
+              <button *ngIf="esAdmin" (click)="cargarResultados(partido)" [disabled]="partido.estado === 'Finalizado'"
+                [ngClass]="partido.estado === 'Finalizado' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary text-white shadow-lg shadow-primary/20'"
+                class="w-full sm:w-auto px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-sm">{{ partido.estado === 'Finalizado' ? 'lock' :
+                  'scoreboard' }}</span>
+                {{ partido.estado === 'Finalizado' ? 'Cerrado' : 'Cargar Score' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="mostrarTabla" class="max-w-6xl mx-auto p-4 sm:p-8 animate-in fade-in zoom-in-95 duration-300">
+      <div class="bg-panel-dark border border-border-dark rounded-2xl overflow-hidden shadow-2xl overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[600px]">
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div *ngIf="showScoreModal"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+  <div class="bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl overflow-hidden">
+    <h3 class="text-xl font-bold text-white mb-6 text-center italic tracking-tighter uppercase">Cargar Resultado Final
+    </h3>
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <div class="flex-1 text-center">
+        <img [src]="getLogo(partidoSeleccionado.local.logoUrl)" class="size-16 mx-auto mb-2 object-contain">
+        <p class="text-[10px] text-slate-400 font-bold uppercase truncate mb-3">{{partidoSeleccionado.local.nombre}}</p>
+        <input type="number" [(ngModel)]="gLocal" min="0" oninput="if(this.value < 0) this.value = 0;"
+          (keypress)="soloNumerosPositivos($event)"
+          class="w-20 h-20 bg-white/5 border-2 border-primary rounded-2xl text-center text-3xl font-black text-white focus:ring-0">
+      </div>
+      <div class="text-2xl font-black text-slate-700 italic">VS</div>
+      <div class="flex-1 text-center">
+        <img [src]="getLogo(partidoSeleccionado.visitante.logoUrl)" class="size-16 mx-auto mb-2 object-contain">
+        <p class="text-[10px] text-slate-400 font-bold uppercase truncate mb-3">{{partidoSeleccionado.visitante.nombre}}
+        </p>
+        <input type="number" [(ngModel)]="gVisitante" min="0" oninput="if(this.value < 0) this.value = 0;"
+          (keypress)="soloNumerosPositivos($event)"
+          class="w-20 h-20 bg-white/5 border-2 border-primary rounded-2xl text-center text-3xl font-black text-white focus:ring-0">
+      </div>
+    </div>
+    <div class="mt-8 space-y-2">
+      <label class="text-[10px] uppercase text-slate-500 font-bold ml-1 tracking-widest">
+        Confirmación de Administrador
+      </label>
+      <div class="relative">
+        <span
+          class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">lock</span>
+        <input type="password" [(ngModel)]="passwordAdmin" placeholder="Ingrese clave para oficializar"
+          class="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white text-sm placeholder:text-slate-600 focus:ring-2 focus:ring-primary focus:border-transparent">
+      </div>
+    </div>
+
+    <div class="flex gap-3 mt-8">
+      <button (click)="showScoreModal = false; passwordAdmin = ''"
+        class="flex-1 py-4 bg-white/5 rounded-2xl font-bold text-slate-400 hover:bg-white/10 transition-all">
+        Cancelar
+      </button>
+      <button (click)="confirmarResultado()" [disabled]="!passwordAdmin"
+        class="flex-[2] py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        FINALIZAR PARTIDO
+      </button>
+    </div>
+
+  </div>
+</div>

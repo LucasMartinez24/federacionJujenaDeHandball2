@@ -45,8 +45,28 @@ export class PartidosService {
     console.log('Jornadas generadas:', jornadas);
     return jornadas;
   }
-
+  getJornadasDisponibles(torneoId: string): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/torneo/${torneoId}/jornadas`);
+  }
+  // Obtiene los partidos de una jornada específica
+  getPartidosByJornada(torneoId: string, jornada: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/torneo/${torneoId}/jornada/${jornada}`);
+  }
+  getFixtureByTorneo(torneoId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/torneo/${torneoId}`);
+  }
   saveFixture(torneoId: string, jornadas: any[]): Observable<any> {
     return this.http.post(`${this.apiUrl}/bulk`, { torneoId, jornadas });
+  }
+  updateResultado(
+    id: string,
+    data: { golesLocal: number; golesVisitante: number },
+  ): Observable<any> {
+    // Usamos patch ya que solo actualizamos una parte del recurso (el resultado)
+    return this.http.patch(`${this.apiUrl}/${id}/resultado`, data);
+  }
+  getTablaPosiciones(torneoId: string): Observable<any[]> {
+    // Asegúrate de que la URL coincida con tu backend
+    return this.http.get<any[]>(`http://localhost:3000/api/posiciones/torneo/${torneoId}`);
   }
 }

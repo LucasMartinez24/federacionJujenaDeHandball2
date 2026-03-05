@@ -7,6 +7,9 @@
         <p class="text-slate-400 mt-1">Selecciona los clubes y organiza las jornadas del torneo.</p>
       </div>
       <div class="flex gap-3">
+        <p *ngIf="jornadas.length > 0" class="text-xs text-amber-500 self-center mr-2 italic">
+          * Fixture cargado. Al generar de nuevo se perderán los cambios.
+        </p>
         <button (click)="generar()"
           class="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/25 hover:brightness-110 transition-all cursor-pointer">
           <span class="material-symbols-outlined text-lg">auto_awesome</span> Generar Partidos

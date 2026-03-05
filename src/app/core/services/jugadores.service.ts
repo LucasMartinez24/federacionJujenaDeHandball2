@@ -8,6 +8,7 @@ export interface Jugador {
   nombreCompleto: string;
   fechaNacimiento: string;
   clubId: string;
+  fichaMedicaUrl: string;
   // Campos nuevos
   genero?: string;
   nacionalidad?: string;

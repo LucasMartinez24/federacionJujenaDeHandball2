@@ -28,11 +28,20 @@
         <span class="material-symbols-outlined">apartment</span>
         <span class="font-medium">Clubes</span>
       </a>
-      <a *ngIf="isAdmin()" (click)="closeMenu()" routerLink="/torneos" routerLinkActive="active-link" class="nav-item">
+      <a (click)="closeMenu()" routerLink="/torneos" routerLinkActive="active-link" class="nav-item">
         <span class="material-symbols-outlined">
           trophy
         </span>
         <span class="font-medium">Torneos</span>
+      </a>
+      <a *ngIf="isAdmin()" (click)="closeMenu()" routerLink="/support" routerLinkActive="active-link" class="nav-item">
+        <span class="material-symbols-outlined">support</span>
+        <span class="font-medium">Soporte</span>
+      </a>
+      <a *ngIf="!isAdmin()" (click)="closeMenu()" routerLink="/support-club" routerLinkActive="active-link"
+        class="nav-item">
+        <span class="material-symbols-outlined">support_agent</span>
+        <span class="font-medium">Centro de Soporte</span>
       </a>
     </nav>
   </div>

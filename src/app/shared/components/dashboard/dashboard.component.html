@@ -1,4 +1,4 @@
-<div class="flex flex-col h-full bg-background-dark">
+<div class="flex flex-col h-full bg-slate-950">
   <div class="p-4 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
     <div class="text-slate-50">
       <h2 class="text-xl md:text-2xl font-bold tracking-tight">Plantilla: {{ clubNombre }}</h2>
@@ -23,7 +23,64 @@
       </button>
     </div>
   </div>
+  <div class="px-4 md:px-8 mb-8">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="size-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">folder_open</span>
+        </div>
+        <div>
+          <h3 class="text-white text-sm font-bold">Documentación y Formularios FJH</h3>
+          <p class="text-slate-500 text-[10px] uppercase tracking-wider font-semibold">Descargas obligatorias para
+            fichajes y pases</p>
+        </div>
+      </div>
 
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <a href="/docs/ficha-medica-vacia.pdf" download
+          class="group flex items-center justify-between p-4 bg-slate-800/30 border border-slate-800 rounded-2xl hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3">
+            <span
+              class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">medical_services</span>
+            <span class="text-xs font-bold text-slate-300">Ficha Médica</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 text-sm">download</span>
+        </a>
+
+        <a href="/docs/autorizacion-menores-18.pdf" download
+          class="group flex items-center justify-between p-4 bg-slate-800/30 border border-slate-800 rounded-2xl hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3">
+            <span
+              class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">family_history</span>
+            <span class="text-xs font-bold text-slate-300">Aut. Menores</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 text-sm">download</span>
+        </a>
+
+        <a href="/docs/Formulario-Fichaje-FJH.pdf" download
+          class="group flex items-center justify-between p-4 bg-slate-800/30 border border-slate-800 rounded-2xl hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3">
+            <span
+              class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">assignment_ind</span>
+            <span class="text-xs font-bold text-slate-300">Fichaje FJH</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 text-sm">download</span>
+        </a>
+
+        <a href="/docs/Formulario-Pases-FJH.pdf" download
+          class="group flex items-center justify-between p-4 bg-slate-800/30 border border-slate-800 rounded-2xl hover:border-primary/50 transition-all">
+          <div class="flex items-center gap-3">
+            <span
+              class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">move_item</span>
+            <span class="text-xs font-bold text-slate-300">Pases FJH</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 text-sm">download</span>
+        </a>
+
+      </div>
+    </div>
+  </div>
   <div class="flex-1 px-4 md:px-8 pb-4 md:pb-8 overflow-hidden flex flex-col">
     <div
       class="bg-slate-900 border border-slate-800 rounded-2xl md:rounded-3xl shadow-sm flex-1 flex flex-col overflow-hidden">

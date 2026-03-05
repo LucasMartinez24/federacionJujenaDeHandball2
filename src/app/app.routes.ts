@@ -44,7 +44,7 @@ export const routes: Routes = [
   {
     path: 'torneos',
     loadComponent: () => import('./shared/components/torneos/torneos').then((m) => m.Torneos),
-    canActivate: [adminGuard],
+    canActivate: [authGuard],
     title: 'Torneos - Federación',
   },
   {
@@ -62,6 +62,33 @@ export const routes: Routes = [
       ),
     canActivate: [adminGuard],
     title: 'Generador de Fixture - Federación',
+  },
+  {
+    path: 'fixture-management/:id',
+    loadComponent: () =>
+      import('./shared/components/fixture-management/fixture-management').then(
+        (m) => m.FixtureManagement,
+      ),
+    canActivate: [authGuard],
+    title: 'Gestión de Fixture - Federación',
+  },
+  {
+    path: 'support',
+    loadComponent: () =>
+      import('./shared/components/support-admin-component/support-admin-component').then(
+        (m) => m.SupportAdminComponent,
+      ),
+    canActivate: [adminGuard],
+    title: 'Soporte - Federación',
+  },
+  {
+    path: 'support-club',
+    loadComponent: () =>
+      import('./shared/components/support-club-component/support-club-component').then(
+        (m) => m.SupportClubComponent,
+      ),
+    canActivate: [authGuard],
+    title: 'Soporte Club - Federación',
   },
   {
     path: '',

@@ -1,0 +1,139 @@
+<div class="relative flex h-screen w-full flex-col overflow-hidden bg-slate-950">
+  <header class="flex items-center bg-slate-950 border-b border-slate-800 p-4 shrink-0">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-primary text-3xl">support_agent</span>
+      <h1 class="text-sm font-bold uppercase text-white">Centro de Soporte FJH</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+    <aside class="hidden md:flex w-80 lg:w-96 flex-col border-r bg-slate-950 shrink-0">
+      <div class="p-4 border-b border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-white">Bandeja de Entrada</h2>
+          <span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">24
+            Activos</span>
+        </div>
+        <input type="text" placeholder="Buscar ticket..."
+          class="w-full bg-slate-900 border-slate-800 rounded-xl text-sm text-white">
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="p-4 bg-slate-950 border-l-4 border-primary cursor-pointer border-b border-slate-800/50">
+          <div class="flex justify-between mb-1">
+            <span class="text-[10px] font-black text-red-500 uppercase tracking-tighter">Urgente</span>
+            <span class="text-[10px] text-slate-500 uppercase">Hoy 10:45</span>
+          </div>
+          <h3 class="font-bold text-sm text-white truncate">Club ficticio</h3>
+          <p class="text-xs text-slate-400 line-clamp-1 italic">Problemas de registro...</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col bg-slate-900/30 overflow-hidden">
+      <div class="p-4 bg-background-dark border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold">CG</div>
+          <div>
+            <h2 class="text-sm font-bold text-white">{{activeTicket.club}}</h2>
+            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Ticket {{activeTicket.id}} •
+              {{activeTicket.subject}}</p>
+          </div>
+        </div>
+        <select [(ngModel)]="activeTicket.status"
+          class="bg-slate-800 border-none text-xs font-bold rounded-lg text-white">
+          <option>Estado: Abierto</option>
+          <option>Estado: Resuelto</option>
+        </select>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <div class="flex flex-col gap-2 max-w-[80%]">
+          <div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 shadow-sm">
+            <p class="text-sm text-slate-200">Adjunto los comprobantes de pago de los 3 jugadores que figuran
+              inhabilitados.</p>
+          </div>
+          <div class="flex gap-2">
+            <div
+              class="bg-slate-800 border border-slate-700 p-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-slate-700 transition-all">
+              <span class="material-symbols-outlined text-sm text-primary">description</span>
+              <span class="text-[10px] text-slate-300">comprobantes.pdf</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded-xl">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-amber-500 text-sm">lock</span>
+            <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Nota Interna - Solo Visibilidad
+              Admin</span>
+          </div>
+          <p class="text-xs text-amber-200/80">Revisar sincronización con el servidor de pagos antes de las 18hs.</p>
+        </div>
+      </div>
+
+      <div class="p-4 bg-background-dark border-t border-slate-800">
+        <div class="flex gap-4 mb-3">
+          <button (click)="isInternal = false" [class.text-primary]="!isInternal"
+            class="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-all">
+            <span class="material-symbols-outlined text-sm">reply</span> Respuesta Club
+          </button>
+          <button (click)="isInternal = true" [class.text-amber-500]="isInternal"
+            class="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 text-slate-500 transition-all">
+            <span class="material-symbols-outlined text-sm">sticky_note_2</span> Nota Interna
+          </button>
+        </div>
+
+        <div
+          class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/40 transition-all">
+          <div class="flex items-center gap-2 px-3 py-2 bg-slate-800/50 border-b border-slate-800">
+            <label
+              class="cursor-pointer hover:bg-slate-700 p-1.5 rounded-lg flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+              <span class="material-symbols-outlined text-xl">attach_file</span>
+              <span class="text-[10px] font-bold uppercase">Adjuntar</span>
+              <input type="file" class="hidden" (change)="onFileSelected($event)" multiple>
+            </label>
+          </div>
+
+          <div *ngIf="selectedFiles.length > 0" class="flex flex-wrap gap-2 p-3 bg-slate-800/30">
+            <div *ngFor="let f of selectedFiles; let i = index"
+              class="bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full flex items-center gap-2">
+              <span class="text-[10px] font-medium text-primary truncate max-w-[100px]">{{f.name}}</span>
+              <button (click)="removeFile(i)"
+                class="material-symbols-outlined text-sm text-primary hover:text-red-500">cancel</button>
+            </div>
+          </div>
+
+          <textarea [(ngModel)]="replyText"
+            [placeholder]="isInternal ? 'Escribir nota privada...' : 'Escribir respuesta oficial al club...'"
+            class="w-full bg-transparent border-none focus:ring-0 p-4 text-sm text-white min-h-[120px] resize-none placeholder:text-slate-600"></textarea>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+          <button (click)="sendReply()" [class.bg-amber-600]="isInternal"
+            class="bg-primary text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+            {{ isInternal ? 'Guardar Nota' : 'Enviar Respuesta' }}
+            <span class="material-symbols-outlined text-sm">send</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="hidden xl:flex w-72 flex-col bg-background-dark border-l border-slate-800 p-6 shrink-0">
+      <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Información Institucional</h3>
+      <div class="space-y-6">
+        <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+          <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Presidente</p>
+          <p class="text-sm font-medium text-white">Sr. Juan Perez</p>
+        </div>
+        <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+          <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Estado FJH</p>
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+            <p class="text-sm font-medium text-white">Cuota al día</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
