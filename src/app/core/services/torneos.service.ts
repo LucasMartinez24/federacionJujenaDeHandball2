@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class TorneosService {
   private http = inject(HttpClient);
-  private url = 'http://localhost:3000/api/torneos';
+  private url = '/api/torneos';
 
   getTorneos(): Observable<any[]> {
     return this.http.get<any[]>(this.url);
