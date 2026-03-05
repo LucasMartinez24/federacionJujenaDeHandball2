@@ -28,7 +28,7 @@ export interface Jugador {
 })
 export class JugadoresService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/jugadores';
+  private apiUrl = '/api/jugadores';
   private jugadoresSubject = new BehaviorSubject<Jugador[]>([]);
   jugadores$ = this.jugadoresSubject.asObservable();
 
