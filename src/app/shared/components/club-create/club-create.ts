@@ -61,7 +61,7 @@ export class ClubCreate implements OnInit {
             username: club.username,
           });
           if (club.logoUrl) {
-            this.logoPreview = `http://localhost:3000${club.logoUrl}`;
+            this.logoPreview = `${club.logoUrl}`;
           }
         }
         // Ya no necesitamos poner this.loading = false; aquí
