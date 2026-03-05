@@ -87,7 +87,7 @@
                 <div class="relative group">
                   <div
                     class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-charcoal flex items-center justify-center overflow-hidden border border-gray-700">
-                    <img *ngIf="selectedClub.logoUrl" [src]="'http://localhost:3000' + selectedClub.logoUrl"
+                    <img *ngIf="selectedClub.logoUrl" [src]="selectedClub.logoUrl"
                       alt="{{ selectedClub.nombre }}">
                     <span *ngIf="!selectedClub.logoUrl" class="text-xl font-bold text-primary">{{ selectedClub.siglas
                       }}</span>
