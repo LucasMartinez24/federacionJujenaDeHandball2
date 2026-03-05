@@ -17,7 +17,7 @@ export interface Club {
 })
 export class ClubesService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/clubes';
+  private apiUrl = '/api/clubes';
 
   getClubes(): Observable<Club[]> {
     return this.http.get<Club[]>(`${this.apiUrl}/`);
