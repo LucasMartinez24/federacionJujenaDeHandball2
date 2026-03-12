@@ -23,15 +23,13 @@ export class JugadorFormComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   windowWidth = window.innerWidth;
-
-  @HostListener('window:resize')
-  onResize() {
+  @HostListener('window:resize') onResize() {
     this.windowWidth = window.innerWidth;
   }
 
-  isEditMode: boolean = false;
+  isEditMode = false;
   jugadorId: string | null = null;
-  errorMessage: string = '';
+  errorMessage = '';
 
   jugadorData: any = {
     dni: '',
@@ -48,76 +46,53 @@ export class JugadorFormComponent implements OnInit {
     clubId: '',
   };
 
-  birthDate: string = '';
-  selectedCategory: string = '';
-  isMinor: boolean = false;
-  selectedHand: string = 'Derecha';
-  clubNombre: string = 'Cargando club...';
+  birthDate = '';
+  selectedCategory = '';
+  isMinor = false;
+  selectedHand = 'Derecha';
+  clubNombre = 'Cargando club...';
 
-  // Manejo de archivos y previsualización (Agregado fichaJugador)
-  fileNames = {
-    fichaMedica: '',
-    autorizacionPadres: '',
-    fichaJugador: '',
-  };
-
+  fileNames = { fichaMedica: '', autorizacionPadres: '', fichaJugador: '' };
   files = {
     fichaMedica: null as File | null,
     autorizacionPadres: null as File | null,
     fichaJugador: null as File | null,
   };
-
-  urlsExistentes = {
-    fichaMedica: '',
-    autorizacionPadres: '',
-    fichaJugador: '',
-  };
+  urlsExistentes = { fichaMedica: '', autorizacionPadres: '', fichaJugador: '' };
 
   ngOnInit() {
     this.jugadorId = this.route.snapshot.paramMap.get('id');
-
     this.route.queryParams.subscribe((params) => {
       if (params['clubId']) {
         this.jugadorData.clubId = params['clubId'];
         this.buscarNombreClub(params['clubId']);
       }
-
       if (params['edit'] === 'true' && this.jugadorId) {
         this.isEditMode = true;
         this.cargarDatosJugador(this.jugadorId);
       }
     });
-
     if (!this.jugadorData.clubId) {
       this.jugadorData.clubId = this.auth.getId();
       this.clubNombre = this.auth.getClubNombre() || 'Mi Club';
     }
-
-    this.cdr.detectChanges();
   }
 
   buscarNombreClub(id: string) {
     this.clubesService.getClubes().subscribe((clubes) => {
       const club = clubes.find((c) => c.id === id);
-      if (club) {
-        this.clubNombre = club.nombre;
-        this.cdr.detectChanges();
-      }
+      if (club) this.clubNombre = club.nombre;
+      this.cdr.detectChanges();
     });
   }
 
   cargarDatosJugador(id: string) {
     this.jugadoresService.getJugadorById(id).subscribe({
-      next: (jugador) => {
-        if (jugador) {
-          this.poblarFormulario(jugador);
-        } else {
-          this.errorMessage = 'El servidor no devolvió datos para este jugador.';
-        }
+      next: (j) => {
+        if (j) this.poblarFormulario(j);
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error al cargar jugador:', err);
+      error: () => {
         this.errorMessage = 'Error al conectar con el servidor.';
         this.cdr.detectChanges();
       },
@@ -130,45 +105,22 @@ export class JugadorFormComponent implements OnInit {
       dni: j.dni,
       apellidos: partesNombre[0] || '',
       nombres: partesNombre[1] || j.nombreCompleto,
-      genero: j.genero || 'Masculino',
-      nacionalidad: j.nacionalidad || 'Argentina',
-      email: j.email || '',
-      whatsapp: j.whatsapp || '',
-      tutorPhone: j.tutorPhone || '',
+      genero: j.genero,
+      nacionalidad: j.nacionalidad,
+      email: j.email,
+      whatsapp: j.whatsapp,
+      tutorPhone: j.tutorPhone,
       peso: j.peso,
       altura: j.altura,
-      estado: j.estado || 'Pendiente',
+      estado: j.estado,
       clubId: j.clubId,
     };
-
     this.birthDate = j.fechaNacimiento.split('T')[0];
-    this.selectedHand = j.manoHabil || 'Derecha';
+    this.selectedHand = j.manoHabil;
     this.onDateChange(this.birthDate);
-    this.buscarNombreClub(j.clubId);
-
-    // RECONOCER ARCHIVOS EXISTENTES
-    if (j.fichaMedicaUrl) {
-      this.fileNames.fichaMedica = 'Archivo guardado';
-      this.urlsExistentes.fichaMedica = j.fichaMedicaUrl;
-    }
-    if (j.autorizacionUrl) {
-      this.fileNames.autorizacionPadres = 'Archivo guardado';
-      this.urlsExistentes.autorizacionPadres = j.autorizacionUrl;
-    }
-    if (j.fichaJugadorUrl) {
-      this.fileNames.fichaJugador = 'Archivo guardado';
-      this.urlsExistentes.fichaJugador = j.fichaJugadorUrl;
-    }
-
-    this.cdr.detectChanges();
-  }
-
-  verArchivo(tipo: 'fichaMedica' | 'autorizacionPadres' | 'fichaJugador') {
-    const url = this.urlsExistentes[tipo];
-    if (url) {
-      // Ajusta según tu URL de API (localhost:3000 o producción)
-      window.open(`http://localhost:3000${url}`, '_blank');
-    }
+    if (j.fichaMedicaUrl) this.fileNames.fichaMedica = 'Archivo guardado';
+    if (j.autorizacionUrl) this.fileNames.autorizacionPadres = 'Archivo guardado';
+    if (j.fichaJugadorUrl) this.fileNames.fichaJugador = 'Archivo guardado';
   }
 
   get progress(): number {
@@ -177,24 +129,19 @@ export class JugadorFormComponent implements OnInit {
       this.jugadorData.apellidos,
       this.jugadorData.nombres,
       this.birthDate,
-      this.fileNames.fichaMedica,
-      this.fileNames.fichaJugador, // Campo obligatorio
+      this.jugadorData.peso,
+      this.jugadorData.altura,
+      this.fileNames.fichaJugador,
     ];
-
-    if (this.isMinor) {
-      fields.push(this.fileNames.autorizacionPadres);
-    }
-
+    if (this.isMinor) fields.push(this.fileNames.autorizacionPadres);
     const completed = fields.filter((f) => !!f).length;
     return Math.round((completed / fields.length) * 100);
   }
 
   onDateChange(newDate: string) {
     if (!newDate) return;
-    const birth = new Date(newDate);
-    const age = this.calculateAge(birth);
+    const age = 2026 - new Date(newDate).getFullYear();
     this.isMinor = age < 18;
-
     if (age <= 12) this.selectedCategory = 'Infantiles (u12)';
     else if (age <= 14) this.selectedCategory = 'Menores (u14)';
     else if (age <= 16) this.selectedCategory = 'Cadetes (u16)';
@@ -214,50 +161,32 @@ export class JugadorFormComponent implements OnInit {
 
   onFinalize() {
     this.errorMessage = '';
-
-    // Validaciones de archivos obligatorios
-    if (!this.fileNames.fichaMedica) {
-      this.errorMessage = 'La Ficha Médica es obligatoria.';
-      this.cdr.detectChanges();
-      return;
-    }
-
     if (!this.fileNames.fichaJugador) {
-      this.errorMessage = 'La Ficha de Jugador (Fichaje FJH) es obligatoria.';
-      this.cdr.detectChanges();
+      this.errorMessage = 'La Ficha de Jugador es obligatoria.';
       return;
     }
-
     if (this.isMinor && !this.fileNames.autorizacionPadres) {
-      this.errorMessage = 'Los menores requieren Autorización de Padres.';
-      this.cdr.detectChanges();
+      this.errorMessage = 'Requiere Autorización de Padres.';
       return;
     }
-
-    if (!this.jugadorData.dni || !this.jugadorData.nombres || !this.birthDate) {
-      this.errorMessage = 'Completa los datos personales obligatorios.';
-      this.cdr.detectChanges();
+    if (!this.jugadorData.dni || !this.jugadorData.peso || !this.jugadorData.altura) {
+      this.errorMessage = 'Peso y Altura son obligatorios.';
       return;
     }
 
     const formData = new FormData();
     Object.keys(this.jugadorData).forEach((key) => {
-      if (this.jugadorData[key] !== null) {
-        formData.append(key, this.jugadorData[key]);
-      }
+      if (this.jugadorData[key] !== null) formData.append(key, this.jugadorData[key]);
     });
-
     formData.append('nombreCompleto', `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`);
     formData.append('fechaNacimiento', this.birthDate);
     formData.append('categoria', this.selectedCategory);
     formData.append('manoHabil', this.selectedHand);
 
-    // Adjuntar archivos al FormData
     if (this.files.fichaMedica) formData.append('fichaMedica', this.files.fichaMedica);
     if (this.files.fichaJugador) formData.append('fichaJugador', this.files.fichaJugador);
-    if (this.isMinor && this.files.autorizacionPadres) {
+    if (this.isMinor && this.files.autorizacionPadres)
       formData.append('autorizacionPadres', this.files.autorizacionPadres);
-    }
 
     const request =
       this.isEditMode && this.jugadorId
@@ -266,22 +195,14 @@ export class JugadorFormComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        toast.success(this.isEditMode ? 'Jugador actualizado' : 'Inscripción finalizada con éxito');
+        toast.success('Operación exitosa');
         window.history.back();
       },
       error: (err) => {
-        this.errorMessage = err.error?.error || 'Error al procesar la solicitud.';
+        this.errorMessage = err.error?.error || 'Error en el servidor';
         this.cdr.detectChanges();
       },
     });
-  }
-
-  private calculateAge(birth: Date): number {
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
   }
 
   onHandChange(hand: string) {

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface User {
   id: string;
@@ -20,7 +21,7 @@ export interface LoginCredentials {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/auth';
+  private apiUrl = environment.apiUrl + '/auth';
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();

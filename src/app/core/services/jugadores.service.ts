@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Jugador {
   id: string;
@@ -28,7 +29,7 @@ export interface Jugador {
 })
 export class JugadoresService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/jugadores';
+  private apiUrl = environment.apiUrl + '/jugadores';
   private jugadoresSubject = new BehaviorSubject<Jugador[]>([]);
   jugadores$ = this.jugadoresSubject.asObservable();
 

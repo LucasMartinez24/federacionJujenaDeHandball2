@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { Jugador } from './jugadores.service';
+import { environment } from '../../../environments/environment';
 
 export interface Club {
   id: string;
@@ -17,7 +18,7 @@ export interface Club {
 })
 export class ClubesService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/clubes';
+  private apiUrl = environment.apiUrl + '/clubes';
 
   getClubes(): Observable<Club[]> {
     return this.http.get<Club[]>(`${this.apiUrl}/`);

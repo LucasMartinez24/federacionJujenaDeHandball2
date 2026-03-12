@@ -2,102 +2,127 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toast } from 'ngx-sonner';
+import { SupportService } from '../../../core/services/support.service';
+import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-support-club-component',
   imports: [CommonModule, FormsModule],
   templateUrl: './support-club-component.html',
   styleUrl: './support-club-component.css',
 })
-export class SupportClubComponent {
+export class SupportClubComponent implements OnInit {
+  private supportService = inject(SupportService);
+  private auth = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
+  // Estados de UI
   showModal = false;
   loading = false;
+  loadingChat = false;
 
-  // Datos para el nuevo ticket
-  nuevoTicket = {
-    asunto: '',
-    categoria: 'General',
-    descripcion: '',
-  };
+  // Datos
+  tickets: any[] = [];
+  ticketSeleccionado: any = null;
+  mensajes: any[] = [];
 
+  // Forms
+  nuevoTicket = { asunto: '', categoria: 'General', descripcion: '' };
+  respuestaRapida: string = '';
   selectedFiles: File[] = [];
 
-  // Mock de tickets del club
-  tickets: any[] = [
-    {
-      id: 'TK-8821',
-      asunto: 'Fallo carga planilla',
-      categoria: 'Competencias',
-      estado: 'In Progress',
-      fecha: 'Hace 2h',
-      archivos: 2,
-    },
-    {
-      id: 'TK-8815',
-      asunto: 'Verificación de Pago',
-      categoria: 'Tesorería',
-      estado: 'Pending',
-      fecha: 'Ayer',
-      archivos: 0,
-    },
-    {
-      id: 'TK-8790',
-      asunto: 'Pase Jugador Pérez',
-      categoria: 'Fichajes',
-      estado: 'Resolved',
-      fecha: '24 Oct',
-      archivos: 1,
-    },
-  ];
-
-  ngOnInit() {}
-
-  abrirModal() {
-    this.showModal = true;
+  ngOnInit() {
+    this.cargarTickets();
   }
 
-  cerrarModal() {
-    this.showModal = false;
-    this.resetForm();
+  cargarTickets() {
+    const clubId = this.auth.getId();
+    if (!clubId) {
+      toast.error('No se pudo obtener el ID del club');
+      return;
+    }
+    this.supportService.getTicketsDelClub(clubId).subscribe((data) => {
+      this.tickets = data;
+      this.cdr.detectChanges();
+    });
+  }
+
+  seleccionarTicket(ticket: any) {
+    this.ticketSeleccionado = ticket;
+    this.loadingChat = true;
+    this.supportService.getMensajes(ticket.id).subscribe((msgs) => {
+      this.mensajes = msgs;
+      this.loadingChat = false;
+      this.cdr.detectChanges();
+    });
   }
 
   onFileSelected(event: any) {
     const files = Array.from(event.target.files) as File[];
-    this.selectedFiles.push(...files);
+    this.selectedFiles = [...this.selectedFiles, ...files];
   }
 
   removeFile(index: number) {
     this.selectedFiles.splice(index, 1);
   }
 
-  resetForm() {
-    this.nuevoTicket = { asunto: '', categoria: 'General', descripcion: '' };
-    this.selectedFiles = [];
-  }
-
   enviarTicket() {
     if (!this.nuevoTicket.asunto || !this.nuevoTicket.descripcion) {
-      toast.error('Por favor, completa los campos obligatorios');
+      toast.error('Completa los campos obligatorios');
+      return;
+    }
+
+    const clubId = this.auth.getId();
+    if (!clubId) {
+      toast.error('No se pudo obtener el ID del club');
       return;
     }
 
     this.loading = true;
-
-    // Simulación de envío con FormData
     const formData = new FormData();
     formData.append('asunto', this.nuevoTicket.asunto);
     formData.append('categoria', this.nuevoTicket.categoria);
     formData.append('descripcion', this.nuevoTicket.descripcion);
-    this.selectedFiles.forEach((file) => formData.append('attachments', file));
+    formData.append('clubId', clubId);
+    this.selectedFiles.forEach((f) => formData.append('attachments', f));
 
-    console.log('Enviando ticket a la Federación...');
+    this.supportService.crearTicket(formData).subscribe({
+      next: (ticket) => {
+        toast.success('Ticket creado correctamente');
+        this.tickets.unshift(ticket);
+        this.cerrarModal();
+        this.loading = false;
+      },
+      error: () => {
+        toast.error('Error al enviar ticket');
+        this.loading = false;
+      },
+    });
+  }
 
-    setTimeout(() => {
-      toast.success('Ticket enviado correctamente. La Federación te responderá pronto.');
-      this.loading = false;
-      this.cerrarModal();
-      this.cdr.detectChanges();
-    }, 1500);
+  enviarRespuesta() {
+    if (!this.respuestaRapida.trim() && this.selectedFiles.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('message', this.respuestaRapida);
+    this.selectedFiles.forEach((f) => formData.append('attachments', f));
+
+    this.supportService
+      .enviarRespuesta(this.ticketSeleccionado.id, formData)
+      .subscribe((newMsg) => {
+        this.mensajes.push(newMsg);
+        this.respuestaRapida = '';
+        this.selectedFiles = [];
+        this.cdr.detectChanges();
+      });
+  }
+
+  cerrarModal() {
+    this.showModal = false;
+    this.nuevoTicket = { asunto: '', categoria: 'General', descripcion: '' };
+    this.selectedFiles = [];
+  }
+
+  abrirModal() {
+    this.showModal = true;
   }
 }

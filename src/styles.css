@@ -30,3 +30,20 @@ body {
   font-family: var(--font-family-display);
   /* min-height: max(884px, 100dvh); */
 }
+
+select {
+  color-scheme: dark;
+}
+
+/* Estilo para las opciones del dropdown */
+select option {
+  background-color: #0f172a;
+  /* Slate-900 */
+  color: white;
+  padding: 12px;
+}
+
+/* Quitar el borde azul por defecto en algunos navegadores */
+select:focus {
+  outline: none;
+}

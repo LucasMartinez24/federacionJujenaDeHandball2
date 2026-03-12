@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PartidosService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/partidos';
+  private apiUrl = environment.apiUrl + '/partidos';
 
   // Algoritmo Round Robin para generar las jornadas
   generarFixture(clubes: any[], idaVuelta: boolean = false): any[] {
