@@ -42,6 +42,7 @@ export class JugadorFormComponent implements OnInit {
     tutorPhone: '',
     peso: null,
     altura: null,
+    equipo: 'A', // <--- VALOR INICIAL POR DEFECTO
     estado: 'Pendiente',
     clubId: '',
   };
@@ -112,6 +113,7 @@ export class JugadorFormComponent implements OnInit {
       tutorPhone: j.tutorPhone,
       peso: j.peso,
       altura: j.altura,
+      equipo: j.equipo || 'A', // <--- POBLAR EQUIPO
       estado: j.estado,
       clubId: j.clubId,
     };
