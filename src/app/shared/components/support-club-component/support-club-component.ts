@@ -104,6 +104,12 @@ export class SupportClubComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('message', this.respuestaRapida);
+
+    // --- CAMPOS AGREGADOS PARA IDENTIFICAR AL CLUB ---
+    formData.append('senderRole', 'CLUB');
+    formData.append('senderName', this.auth.getClubNombre() || 'Club');
+    // -------------------------------------------------
+
     this.selectedFiles.forEach((f) => formData.append('attachments', f));
 
     this.supportService

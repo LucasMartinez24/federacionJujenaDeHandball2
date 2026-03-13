@@ -12,8 +12,11 @@
         <span class="material-symbols-outlined">sports_handball</span>
       </div>
       <div>
-        <p class="text-lg font-bold leading-none text-slate-50">Jujuy Handball</p>
-        <p class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">Federation Admin</p>
+        <p class="text-lg font-bold leading-none text-slate-50">Sistema FJH</p>
+        <p *ngIf="isAdmin()" class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
+          Administrador</p>
+        <p *ngIf="!isAdmin()" class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
+          Club</p>
       </div>
     </div>
 
