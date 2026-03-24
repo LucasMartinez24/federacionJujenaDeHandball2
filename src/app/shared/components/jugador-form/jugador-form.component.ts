@@ -124,7 +124,15 @@ export class JugadorFormComponent implements OnInit {
     if (j.autorizacionUrl) this.fileNames.autorizacionPadres = 'Archivo guardado';
     if (j.fichaJugadorUrl) this.fileNames.fichaJugador = 'Archivo guardado';
   }
+  soloNumeros(event: KeyboardEvent) {
+    const pattern = /[0-9]/;
+    const inputChar = String.fromCharCode(event.charCode);
 
+    if (!pattern.test(inputChar)) {
+      // Si la tecla presionada no coincide con el patrón de números, prevenimos la entrada
+      event.preventDefault();
+    }
+  }
   get progress(): number {
     const fields = [
       this.jugadorData.dni,
