@@ -218,8 +218,7 @@
     </p>
 
     <div class="space-y-3">
-      <a *ngIf="selectedPlayerDocs?.fichaJugadorUrl"
-        [href]="'http://localhost:3000' + selectedPlayerDocs.fichaJugadorUrl" target="_blank"
+      <a *ngIf="selectedPlayerDocs?.fichaJugadorUrl" [href]="selectedPlayerDocs.fichaJugadorUrl" target="_blank"
         class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-primary">assignment_ind</span>
@@ -229,8 +228,7 @@
           class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
       </a>
 
-      <a *ngIf="selectedPlayerDocs?.fichaMedicaUrl" [href]="'http://localhost:3000' + selectedPlayerDocs.fichaMedicaUrl"
-        target="_blank"
+      <a *ngIf="selectedPlayerDocs?.fichaMedicaUrl" [href]="selectedPlayerDocs.fichaMedicaUrl" target="_blank"
         class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-emerald-500">medical_services</span>
@@ -240,8 +238,7 @@
           class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
       </a>
 
-      <a *ngIf="selectedPlayerDocs?.autorizacionUrl"
-        [href]="'http://localhost:3000' + selectedPlayerDocs.autorizacionUrl" target="_blank"
+      <a *ngIf="selectedPlayerDocs?.autorizacionUrl" [href]="selectedPlayerDocs.autorizacionUrl" target="_blank"
         class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-amber-500">family_history</span>
