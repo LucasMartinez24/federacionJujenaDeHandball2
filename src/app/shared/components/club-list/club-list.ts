@@ -5,6 +5,8 @@ import { ClubesService, Club } from '../../../core/services/clubes.service';
 import { JugadoresService, Jugador } from '../../../core/services/jugadores.service'; // Inyectamos el servicio
 import { toast } from 'ngx-sonner';
 import { FormsModule } from '@angular/forms';
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-club-list',
@@ -224,5 +226,85 @@ export class ClubList implements OnInit {
         this.showDeleteModalClub = false;
       },
     });
+  }
+  //exportar plantilla
+  async exportarPlantilla() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Plantilla FJH');
+
+    // 1. TÍTULO PRINCIPAL
+    const titleRow = worksheet.addRow(['FEDERACIÓN JUJEÑA DE HANDBALL']);
+    worksheet.mergeCells('A1:H1');
+    titleRow.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    titleRow.getCell(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1D4ED8' }, // Azul Primario FJH
+    };
+
+    // 2. SUBTÍTULO
+    const subTitleRow = worksheet.addRow([
+      `PLANTILLA OFICIAL: ${this.selectedClub?.nombre.toUpperCase()}`,
+    ]);
+    worksheet.mergeCells('A2:H2');
+    subTitleRow.font = { size: 12, bold: true };
+    subTitleRow.alignment = { horizontal: 'center' };
+
+    // 3. CABECERA DE TABLA
+    const headerRow = worksheet.addRow([
+      'Institución',
+      'Jugador',
+      'DNI',
+      'Categoría',
+      'Género',
+      'Estado',
+      'Nacionalidad',
+      'WhatsApp',
+    ]);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+      cell.font = { bold: true, color: { argb: 'FF334155' } };
+      cell.border = { bottom: { style: 'thin' } };
+    });
+
+    // 4. DATOS
+    this.jugadoresFiltrados.forEach((j) => {
+      const row = worksheet.addRow([
+        this.selectedClub?.nombre,
+        j.nombreCompleto,
+        j.dni,
+        j.categoria,
+        j.genero,
+        j.estado || 'Pendiente',
+        j.nacionalidad,
+        j.whatsapp || 'N/A',
+      ]);
+
+      // Color condicional para el estado
+      const statusCell = row.getCell(6);
+      if (j.estado === 'Aprobado') statusCell.font = { color: { argb: 'FF10B981' }, bold: true };
+      if (j.estado === 'Pendiente') statusCell.font = { color: { argb: 'FFF59E0B' }, bold: true };
+      if (j.estado === 'Rechazado') statusCell.font = { color: { argb: 'FFEF4444' }, bold: true };
+    });
+
+    // 5. AJUSTES FINALES (Ancho de columnas)
+    worksheet.columns.forEach((column) => {
+      column.width = 20;
+    });
+
+    // 6. DESCARGA
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    saveAs(blob, `FJH_Plantilla_${this.selectedClub?.siglas}.xlsx`);
+  }
+  showDocsModal = false;
+  selectedPlayerDocs: any = null;
+
+  verDocumentacion(jugador: any) {
+    this.selectedPlayerDocs = jugador;
+    this.showDocsModal = true;
   }
 }

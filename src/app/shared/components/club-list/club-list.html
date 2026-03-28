@@ -68,8 +68,7 @@
             class="flex-shrink-0 lg:flex-shrink flex cursor-pointer items-center gap-4 p-4 bg-charcoal-card rounded-2xl border border-gray-600 shadow-soft text-left hover:border-gray-500 transition-all min-w-[240px] lg:min-w-0">
             <div
               class="size-10 md:size-12 rounded-lg bg-gray-900 flex items-center justify-center overflow-hidden border border-charcoal-border flex-shrink-0">
-              <img *ngIf="club.logoUrl" [src]="club.logoUrl" alt="Logo"
-                class="w-full h-full object-contain p-1">
+              <img *ngIf="club.logoUrl" [src]="club.logoUrl" alt="Logo" class="w-full h-full object-contain p-1">
               <span *ngIf="!club.logoUrl" class="text-xs font-bold text-primary">{{ club.siglas }}</span>
             </div>
             <div class="min-w-0">
@@ -87,8 +86,7 @@
                 <div class="relative group">
                   <div
                     class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-charcoal flex items-center justify-center overflow-hidden border border-gray-700">
-                    <img *ngIf="selectedClub.logoUrl" [src]="selectedClub.logoUrl"
-                      alt="{{ selectedClub.nombre }}">
+                    <img *ngIf="selectedClub.logoUrl" [src]="selectedClub.logoUrl" alt="{{ selectedClub.nombre }}">
                     <span *ngIf="!selectedClub.logoUrl" class="text-xl font-bold text-primary">{{ selectedClub.siglas
                       }}</span>
                   </div>
@@ -121,7 +119,7 @@
                   class="bg-primary cursor-pointer hover:bg-blue-700 text-white text-sm font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95">
                   <span class="material-symbols-outlined text-xl">person_add</span> Añadir Jugador
                 </button>
-                <button
+                <button (click)="exportarPlantilla()"
                   class="bg-charcoal border border-gray-600 hover:bg-gray-900/50 text-gray-300 text-sm font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer">
                   <span class="material-symbols-outlined text-xl">ios_share</span> Exportar Plantilla
                 </button>
@@ -182,6 +180,10 @@
 
                     <td class="px-4 md:px-8 py-4 text-right">
                       <div class="flex items-center justify-end gap-0 md:gap-0">
+                        <button (click)="verDocumentacion(jugador)" title="Ver Documentación"
+                          class="p-1 text-gray-400 cursor-pointer hover:text-indigo-400 transition-colors">
+                          <span class="material-symbols-outlined text-xl">folder_shared</span>
+                        </button>
                         <button *ngIf="jugador.estado !== 'Aprobado'" (click)="cambiarEstado(jugador, 'Aprobado')"
                           class="p-1 text-gray-400 cursor-pointer hover:text-emerald-400 transition-colors"><span
                             class="material-symbols-outlined text-xl">check_circle</span></button>
@@ -204,6 +206,61 @@
         </div>
       </div>
     </main>
+  </div>
+</div>
+<div *ngIf="showDocsModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+  <div (click)="showDocsModal = false" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+
+  <div
+    class="relative bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+    <h3 class="text-xl font-bold text-white mb-1">Documentación</h3>
+    <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest font-bold">{{ selectedPlayerDocs?.nombreCompleto }}
+    </p>
+
+    <div class="space-y-3">
+      <a *ngIf="selectedPlayerDocs?.fichaJugadorUrl"
+        [href]="'http://localhost:3000' + selectedPlayerDocs.fichaJugadorUrl" target="_blank"
+        class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary">assignment_ind</span>
+          <span class="text-sm font-bold text-slate-200">Ficha Fichaje FJH</span>
+        </div>
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+      </a>
+
+      <a *ngIf="selectedPlayerDocs?.fichaMedicaUrl" [href]="'http://localhost:3000' + selectedPlayerDocs.fichaMedicaUrl"
+        target="_blank"
+        class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-emerald-500">medical_services</span>
+          <span class="text-sm font-bold text-slate-200">Certificado Médico</span>
+        </div>
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+      </a>
+
+      <a *ngIf="selectedPlayerDocs?.autorizacionUrl"
+        [href]="'http://localhost:3000' + selectedPlayerDocs.autorizacionUrl" target="_blank"
+        class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-amber-500">family_history</span>
+          <span class="text-sm font-bold text-slate-200">Aut. de Padres</span>
+        </div>
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+      </a>
+
+      <p *ngIf="!selectedPlayerDocs?.fichaJugadorUrl && !selectedPlayerDocs?.fichaMedicaUrl && !selectedPlayerDocs?.autorizacionUrl"
+        class="text-center py-4 text-slate-500 text-sm italic">
+        No se cargaron documentos para este jugador.
+      </p>
+    </div>
+
+    <button (click)="showDocsModal = false"
+      class="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all">
+      Cerrar
+    </button>
   </div>
 </div>
 <div *ngIf="showDeleteModal"
