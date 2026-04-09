@@ -6,75 +6,51 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class PartidosService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl + '/partidos';
+  private apiUrl = environment.apiUrl;
 
-  // Algoritmo Round Robin para generar las jornadas
-  generarFixture(clubes: any[], idaVuelta: boolean = false): any[] {
-    let equipos = [...clubes];
-    if (equipos.length % 2 !== 0) equipos.push({ id: null, nombre: 'DESCANSA' });
+  // --- MÉTODOS DE FIXTURE ---
 
-    const numEquipos = equipos.length;
-    const numJornadas = numEquipos - 1;
-    const partidosPorJornada = numEquipos / 2;
-    let jornadas = [];
-
-    for (let i = 0; i < numJornadas; i++) {
-      let partidos = [];
-      for (let j = 0; j < partidosPorJornada; j++) {
-        const local = equipos[j];
-        const visitante = equipos[numEquipos - 1 - j];
-
-        if (local.id && visitante.id) {
-          partidos.push({ local, visitante, estado: 'Pendiente' });
-        }
-      }
-      jornadas.push({ numero: i + 1, partidos });
-      equipos.splice(1, 0, equipos.pop()!); // Rotación
-    }
-
-    if (idaVuelta) {
-      const vueltas = jornadas.map((j) => ({
-        numero: j.numero + numJornadas,
-        partidos: j.partidos.map((p) => ({
-          local: p.visitante,
-          visitante: p.local,
-          estado: 'Pendiente',
-        })),
-      }));
-      jornadas = [...jornadas, ...vueltas];
-    }
-    console.log('Jornadas generadas:', jornadas);
-    return jornadas;
-  }
   getJornadasDisponibles(torneoId: string): Observable<number[]> {
-    return this.http.get<number[]>(`${this.apiUrl}/torneo/${torneoId}/jornadas`);
+    // Coincide con: router.get("/torneo/:torneoId/jornadas", ...)
+    return this.http.get<number[]>(`${this.apiUrl}/partidos/torneo/${torneoId}/jornadas`);
   }
-  // Obtiene los partidos de una jornada específica
+
   getPartidosByJornada(torneoId: string, jornada: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/torneo/${torneoId}/jornada/${jornada}`);
+    // Coincide con: router.get("/torneo/:torneoId/jornada/:numero", ...)
+    return this.http.get<any[]>(`${this.apiUrl}/partidos/torneo/${torneoId}/jornada/${jornada}`);
   }
+
   getFixtureByTorneo(torneoId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/torneo/${torneoId}`);
+    // Coincide con: router.get("/torneo/:torneoId", ...)
+    return this.http.get<any[]>(`${this.apiUrl}/partidos/torneo/${torneoId}`);
   }
-  // partidos.service.ts
 
   saveFixture(torneoId: string, jornadas: any[]): Observable<any> {
-    // CAMBIO: Antes apuntaba a /bulk, ahora a /torneo/${torneoId}/fixture
-    return this.http.post(`${this.apiUrl}/torneo/${torneoId}/fixture`, { jornadas });
+    // Coincide con: router.post("/torneo/:torneoId/fixture", ...)
+    return this.http.post(`${this.apiUrl}/partidos/torneo/${torneoId}/fixture`, { jornadas });
   }
+
+  // --- MÉTODOS DE RESULTADOS ---
+
   updateResultado(id: string, data: any): Observable<any> {
-    // Ahora permitimos que 'data' contenga los detallesJugadores, arbitros, etc.
-    return this.http.patch(`${this.apiUrl}/${id}/resultado`, data);
+    // Coincide con: router.patch("/:id/resultado", ...)
+    return this.http.patch(`${this.apiUrl}/partidos/${id}/resultado`, data);
   }
+
   getTablaPosiciones(torneoId: string): Observable<any[]> {
-    // Asegúrate de que la URL coincida con tu backend
+    // Coincide con tu controlador de posiciones.js: router.get("/torneo/:torneoId", ...)
+    // Suponiendo que el index.js del backend lo tiene como app.use('/api/posiciones', ...)
     return this.http.get<any[]>(`${this.apiUrl}/posiciones/torneo/${torneoId}`);
   }
+
   deletePartido(partidoId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${partidoId}`);
+    return this.http.delete(`${this.apiUrl}/partidos/${partidoId}`);
   }
+
+  // --- MÉTODOS DE APOYO ---
+
   getJugadoresPorClub(clubId: string): Observable<any[]> {
-    // OJO: La ruta debe ser /api/clubes/.../jugadores
+    // Asegúrate que tu backend tenga esta ruta en clubes.js o jugadores.js
     return this.http.get<any[]>(`${this.apiUrl}/clubes/${clubId}/jugadores`);
   }
 }
