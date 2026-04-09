@@ -68,13 +68,13 @@ export class PartidosService {
   }
   getTablaPosiciones(torneoId: string): Observable<any[]> {
     // Asegúrate de que la URL coincida con tu backend
-    return this.http.get<any[]>(`http://localhost:3000/api/posiciones/torneo/${torneoId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/posiciones/torneo/${torneoId}`);
   }
   deletePartido(partidoId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${partidoId}`);
   }
   getJugadoresPorClub(clubId: string): Observable<any[]> {
     // OJO: La ruta debe ser /api/clubes/.../jugadores
-    return this.http.get<any[]>(`${environment.apiUrl}/clubes/${clubId}/jugadores`);
+    return this.http.get<any[]>(`${this.apiUrl}/clubes/${clubId}/jugadores`);
   }
 }

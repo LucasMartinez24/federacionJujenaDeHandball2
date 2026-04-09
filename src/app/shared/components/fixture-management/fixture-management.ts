@@ -21,7 +21,6 @@ export class FixtureManagement implements OnInit {
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
-  public readonly apiUrl = environment.apiUrl;
   public esAdmin: boolean = false;
   torneoId: string | null = null;
   torneoNombre: string = 'Cargando...';

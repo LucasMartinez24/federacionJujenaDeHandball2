@@ -23,7 +23,7 @@ export class ClubList implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   public authService = inject(AuthService);
-  public readonly apiUrl = environment.apiUrl;
+
   clubes: Club[] = [];
   selectedClub: Club | null = null;
   isLoading: boolean = false;

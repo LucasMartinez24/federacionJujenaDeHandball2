@@ -24,8 +24,6 @@ export class SupportService {
     return this.http.patch(`${this.URL}/${ticketId}/status`, { status });
   }
   getServerUrl(): string {
-    // Si environment.apiUrl es 'http://localhost:3000/api',
-    // esto devuelve 'http://localhost:3000'
     return environment.apiUrl.replace('/api', '');
   }
   // Obtener tickets del club logueado
