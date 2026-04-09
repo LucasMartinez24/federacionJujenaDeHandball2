@@ -42,14 +42,17 @@ export class JugadorFormComponent implements OnInit {
     tutorPhone: '',
     peso: null,
     altura: null,
-    equipo: 'A', // <--- VALOR INICIAL POR DEFECTO
+    equipo: 'A',
     estado: 'Pendiente',
     clubId: '',
+    categoriaEspecial: 'Primera', // Campo para veteranos
   };
 
   birthDate = '';
   selectedCategory = '';
   isMinor = false;
+  mostrarSelectorEspecial = false;
+  opcionesCategoriaEspecial: string[] = [];
   selectedHand = 'Derecha';
   clubNombre = 'Cargando club...';
 
@@ -59,7 +62,6 @@ export class JugadorFormComponent implements OnInit {
     autorizacionPadres: null as File | null,
     fichaJugador: null as File | null,
   };
-  urlsExistentes = { fichaMedica: '', autorizacionPadres: '', fichaJugador: '' };
 
   ngOnInit() {
     this.jugadorId = this.route.snapshot.paramMap.get('id');
@@ -73,6 +75,7 @@ export class JugadorFormComponent implements OnInit {
         this.cargarDatosJugador(this.jugadorId);
       }
     });
+
     if (!this.jugadorData.clubId) {
       this.jugadorData.clubId = this.auth.getId();
       this.clubNombre = this.auth.getClubNombre() || 'Mi Club';
@@ -113,34 +116,32 @@ export class JugadorFormComponent implements OnInit {
       tutorPhone: j.tutorPhone,
       peso: j.peso,
       altura: j.altura,
-      equipo: j.equipo || 'A', // <--- POBLAR EQUIPO
+      equipo: j.equipo || 'A',
+      categoriaEspecial: j.categoriaEspecial || 'Primera',
       estado: j.estado,
       clubId: j.clubId,
     };
     this.birthDate = j.fechaNacimiento.split('T')[0];
     this.selectedHand = j.manoHabil;
     this.onDateChange(this.birthDate);
+
     if (j.fichaMedicaUrl) this.fileNames.fichaMedica = 'Archivo guardado';
     if (j.autorizacionUrl) this.fileNames.autorizacionPadres = 'Archivo guardado';
     if (j.fichaJugadorUrl) this.fileNames.fichaJugador = 'Archivo guardado';
   }
+
   soloNumeros(event: KeyboardEvent) {
     const pattern = /[0-9]/;
     const inputChar = String.fromCharCode(event.charCode);
-
-    if (!pattern.test(inputChar)) {
-      // Si la tecla presionada no coincide con el patrón de números, prevenimos la entrada
-      event.preventDefault();
-    }
+    if (!pattern.test(inputChar)) event.preventDefault();
   }
+
   get progress(): number {
     const fields = [
       this.jugadorData.dni,
       this.jugadorData.apellidos,
       this.jugadorData.nombres,
       this.birthDate,
-      this.jugadorData.peso,
-      this.jugadorData.altura,
       this.fileNames.fichaJugador,
     ];
     if (this.isMinor) fields.push(this.fileNames.autorizacionPadres);
@@ -150,13 +151,28 @@ export class JugadorFormComponent implements OnInit {
 
   onDateChange(newDate: string) {
     if (!newDate) return;
-    const age = 2026 - new Date(newDate).getFullYear();
+    const birthYear = new Date(newDate).getFullYear();
+    const age = 2026 - birthYear; // Referencia año actual sistema
+
     this.isMinor = age < 18;
+
+    // Lógica de Categorías Base
     if (age <= 12) this.selectedCategory = 'Infantiles (u12)';
     else if (age <= 14) this.selectedCategory = 'Menores (u14)';
     else if (age <= 16) this.selectedCategory = 'Cadetes (u16)';
     else if (age <= 18) this.selectedCategory = 'Juveniles (u18)';
     else this.selectedCategory = 'Primera';
+
+    // Lógica para Mayores de 35 (Veteranos)
+    if (age >= 35) {
+      this.mostrarSelectorEspecial = true;
+      this.opcionesCategoriaEspecial = ['Primera', '+35 (Veteranos)', 'Ambas (Primera y +35)'];
+      if (!this.isEditMode) this.jugadorData.categoriaEspecial = 'Primera';
+    } else {
+      this.mostrarSelectorEspecial = false;
+      this.jugadorData.categoriaEspecial = null;
+    }
+
     this.cdr.detectChanges();
   }
 
@@ -179,15 +195,18 @@ export class JugadorFormComponent implements OnInit {
       this.errorMessage = 'Requiere Autorización de Padres.';
       return;
     }
-    if (!this.jugadorData.dni || !this.jugadorData.peso || !this.jugadorData.altura) {
-      this.errorMessage = 'Peso y Altura son obligatorios.';
+    if (!this.jugadorData.dni || !this.jugadorData.apellidos || !this.birthDate) {
+      this.errorMessage = 'Completa los campos obligatorios.';
       return;
     }
 
     const formData = new FormData();
     Object.keys(this.jugadorData).forEach((key) => {
-      if (this.jugadorData[key] !== null) formData.append(key, this.jugadorData[key]);
+      if (this.jugadorData[key] !== null && this.jugadorData[key] !== undefined) {
+        formData.append(key, this.jugadorData[key]);
+      }
     });
+
     formData.append('nombreCompleto', `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`);
     formData.append('fechaNacimiento', this.birthDate);
     formData.append('categoria', this.selectedCategory);

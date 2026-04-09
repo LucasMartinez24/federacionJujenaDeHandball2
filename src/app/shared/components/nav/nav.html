@@ -3,55 +3,65 @@
   <span class="material-symbols-outlined">{{ isMenuOpen ? 'close' : 'menu' }}</span>
 </button>
 
-<aside [class.translate-x-0]="isMenuOpen" [class.-translate-x-full]="!isMenuOpen" class="fixed inset-0 z-[150] w-full h-full bg-slate-950 flex flex-col transition-transform duration-300 ease-in-out
-         lg:static lg:translate-x-0 lg:w-64 lg:bg-slate-900 lg:border-r lg:border-slate-800">
+<aside [class.translate-x-0]="isMenuOpen" [class.-translate-x-full]="!isMenuOpen"
+  class="fixed inset-0 z-[150] w-full h-full bg-slate-950 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:w-64 lg:bg-slate-900 lg:border-r lg:border-slate-800">
 
   <div class="p-6">
     <div class="flex items-center gap-3 mb-10 mt-16 lg:mt-0">
       <div class="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
         <span class="material-symbols-outlined">sports_handball</span>
       </div>
-      <div>
-        <p class="text-lg font-bold leading-none text-slate-50">Sistema FJH</p>
-        <p *ngIf="isAdmin()" class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
-          Administrador</p>
-        <p *ngIf="!isAdmin()" class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
-          Club</p>
+      <div class="min-w-0">
+        <p class="text-sm font-bold leading-none text-slate-50 truncate">{{ authService.getCurrentUser()?.nombre }}</p>
+        <p
+          class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mt-1.5 px-2 py-0.5 bg-slate-800 rounded-md inline-block">
+          {{ getRoleLabel() }}
+        </p>
       </div>
     </div>
 
     <nav class="space-y-1">
-      <a *ngIf="!isAdmin()" (click)="closeMenu()" routerLink="/dashboard" routerLinkActive="active-link"
+      <a *ngIf="authService.isClub()" (click)="closeMenu()" routerLink="/dashboard" routerLinkActive="active-link"
         [routerLinkActiveOptions]="{exact: true}" class="nav-item">
-        <span class="material-symbols-outlined">sports_handball</span>
-        <span class="font-medium">Jugadores</span>
+        <span class="material-symbols-outlined">groups</span>
+        <span class="font-medium">Mis Jugadores</span>
       </a>
 
-      <a *ngIf="isAdmin()" (click)="closeMenu()" routerLink="/clubes" routerLinkActive="active-link" class="nav-item">
+      <a *ngIf="authService.canManageClubs()" (click)="closeMenu()" routerLink="/clubes" routerLinkActive="active-link"
+        class="nav-item">
         <span class="material-symbols-outlined">apartment</span>
-        <span class="font-medium">Clubes</span>
+        <span class="font-medium">Clubes / Auditoría</span>
       </a>
-      <a (click)="closeMenu()" routerLink="/torneos" routerLinkActive="active-link" class="nav-item">
-        <span class="material-symbols-outlined">
-          trophy
-        </span>
+
+      <a *ngIf="authService.isAdmin() || authService.isOficialMesa() || authService.isJefeArbitros() || authService.isClub()"
+        (click)="closeMenu()" routerLink="/torneos" routerLinkActive="active-link" class="nav-item">
+        <span class="material-symbols-outlined">trophy</span>
         <span class="font-medium">Torneos</span>
       </a>
-      <a *ngIf="isAdmin()" (click)="closeMenu()" routerLink="/support" routerLinkActive="active-link" class="nav-item">
-        <span class="material-symbols-outlined">support</span>
-        <span class="font-medium">Soporte</span>
-      </a>
-      <a *ngIf="!isAdmin()" (click)="closeMenu()" routerLink="/support-club" routerLinkActive="active-link"
+
+      <a *ngIf="authService.isAdmin() " (click)="closeMenu()" routerLink="/support" routerLinkActive="active-link"
         class="nav-item">
+        <span class="material-symbols-outlined">confirmation_number</span>
+        <span class="font-medium">Tickets Federación</span>
+      </a>
+
+      <a *ngIf="authService.isClub() || authService.isRepFederacion() || authService.isOficialMesa() ||authService.isJefeArbitros()"
+        (click)="closeMenu()" routerLink="/support-club" routerLinkActive="active-link" class="nav-item">
         <span class="material-symbols-outlined">support_agent</span>
-        <span class="font-medium">Centro de Soporte</span>
+        <span class="font-medium">Soporte Técnico</span>
+      </a>
+
+      <a *ngIf="authService.isClub()" (click)="closeMenu()" routerLink="/calendarioCompleto"
+        routerLinkActive="active-link" class="nav-item">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <span class="font-medium">Mi Calendario</span>
       </a>
     </nav>
   </div>
 
-  <div class="mt-auto p-6">
+  <div class="mt-auto p-6 border-t border-slate-800/50">
     <button (click)="onLogout()"
-      class="cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-900/10 transition-colors">
+      class="cursor-pointer w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-colors">
       <span class="material-symbols-outlined">logout</span>
       <span class="font-medium">Cerrar Sesión</span>
     </button>

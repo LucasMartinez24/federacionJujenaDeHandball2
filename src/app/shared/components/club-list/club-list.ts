@@ -2,11 +2,13 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ClubesService, Club } from '../../../core/services/clubes.service';
-import { JugadoresService, Jugador } from '../../../core/services/jugadores.service'; // Inyectamos el servicio
+import { JugadoresService, Jugador } from '../../../core/services/jugadores.service';
+import { environment } from '../../../../environments/environment';
 import { toast } from 'ngx-sonner';
 import { FormsModule } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-club-list',
@@ -17,161 +19,56 @@ import { saveAs } from 'file-saver';
 })
 export class ClubList implements OnInit {
   private clubesService = inject(ClubesService);
-  private jugadoresService = inject(JugadoresService); // Inyectamos para gestionar estados
+  private jugadoresService = inject(JugadoresService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-
+  public authService = inject(AuthService);
+  public readonly apiUrl = environment.apiUrl;
   clubes: Club[] = [];
   selectedClub: Club | null = null;
   isLoading: boolean = false;
+  competenciasActivas: number = 0;
+
+  // Filtros
+  searchText: string = '';
+  statusFilter: string = 'Todos';
+
+  // Modales
+  showDocsModal = false;
+  showDeleteModal = false;
+  showDeleteModalClub = false;
+  selectedPlayerDocs: any = null;
+  playerToDelete: any = null;
+  clubToDelete: any = null;
 
   ngOnInit(): void {
     this.loadClubs();
-  }
-  editarClub(club: Club): void {
-    this.router.navigate(['/club-create'], {
-      queryParams: { id: club.id, edit: 'true' },
-    });
   }
 
   loadClubs(): void {
     this.isLoading = true;
     this.clubesService.getClubes().subscribe({
       next: (res) => {
-        this.clubes = res || [];
+        // Normalización de datos para asegurar que esInvitado sea booleano
+        this.clubes = (res || []).map((c) => ({
+          ...c,
+          esInvitado: !!c.esInvitado,
+        }));
+
         if (this.clubes.length > 0 && !this.selectedClub) {
-          this.selectedClub = this.clubes[0];
+          this.selectClub(this.clubes[0]);
         }
         this.isLoading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error al cargar clubes:', err);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
+      error: () => (this.isLoading = false),
     });
   }
 
   selectClub(club: Club): void {
     this.selectedClub = club;
+    this.calcularCompetenciasActivas(club.id);
     this.cdr.detectChanges();
-  }
-
-  // --- NUEVA LÓGICA: CAMBIAR ESTADO (APROBAR/RECHAZAR) ---
-  cambiarEstado(jugador: Jugador, nuevoEstado: string): void {
-    // Creamos el FormData para el backend (nuestro PUT recibe multipart/form-data)
-    const formData = new FormData();
-    formData.append('estado', nuevoEstado);
-
-    this.jugadoresService.updateJugador(jugador.id, formData as any).subscribe({
-      next: () => {
-        // Actualizamos localmente el estado para reflejar el cambio en la tabla
-        jugador.estado = nuevoEstado;
-
-        const config =
-          nuevoEstado === 'Aprobado'
-            ? { msg: 'Jugador Habilitado', icon: 'check_circle' }
-            : { msg: 'Ficha Rechazada', icon: 'block' };
-
-        toast.success(config.msg, {
-          description: `${jugador.nombreCompleto} ha sido actualizado.`,
-        });
-
-        this.cdr.detectChanges();
-      },
-      error: () => toast.error('No se pudo cambiar el estado del jugador'),
-    });
-  }
-
-  // --- NUEVA LÓGICA: ELIMINAR JUGADOR ---
-  showDeleteModal: boolean = false;
-  playerToDelete: { id: string; name: string } | null = null;
-
-  confirmDelete(jugador: Jugador): void {
-    this.playerToDelete = { id: jugador.id, name: jugador.nombreCompleto };
-    this.showDeleteModal = true;
-    this.cdr.detectChanges();
-  }
-
-  closeModal(): void {
-    this.showDeleteModal = false;
-    this.playerToDelete = null;
-    this.cdr.detectChanges();
-  }
-
-  executeDelete(): void {
-    if (!this.playerToDelete) return;
-
-    const id = this.playerToDelete.id;
-    const nombre = this.playerToDelete.name;
-
-    this.jugadoresService.deleteJugador(id).subscribe({
-      next: () => {
-        // 1. Filtramos la lista del club seleccionado localmente
-        if (this.selectedClub && this.selectedClub.jugadores) {
-          this.selectedClub.jugadores = this.selectedClub.jugadores.filter((j) => j.id !== id);
-        }
-
-        // 2. Cerramos el modal y notificamos
-        this.closeModal();
-        toast.warning('Jugador eliminado', {
-          description: `Se ha borrado la ficha de ${nombre} y sus documentos.`,
-        });
-
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        toast.error('Error al eliminar', {
-          description: 'No se pudo completar la acción en el servidor.',
-        });
-      },
-    });
-  }
-  // --- ESTADÍSTICAS DINÁMICAS ---
-
-  getTotalRegistrosPendientes(): number {
-    return this.clubes.reduce((acc, club) => {
-      const pendientes =
-        club.jugadores?.filter((j) => j.estado === 'Pendiente' || !j.estado).length || 0;
-      return acc + pendientes;
-    }, 0);
-  }
-  searchText: string = '';
-  statusFilter: string = 'Todos';
-
-  // Getter dinámico para filtrar la lista
-  get jugadoresFiltrados(): Jugador[] {
-    if (!this.selectedClub || !this.selectedClub.jugadores) return [];
-
-    return this.selectedClub.jugadores.filter((j) => {
-      // 1. Filtro por Estado
-      const matchesStatus =
-        this.statusFilter === 'Todos' || (j.estado || 'Pendiente') === this.statusFilter;
-
-      // 2. Filtro por Texto (Nombre o DNI)
-      const term = this.searchText.toLowerCase().trim();
-      const matchesText =
-        !term || j.nombreCompleto.toLowerCase().includes(term) || j.dni.toString().includes(term);
-
-      return matchesStatus && matchesText;
-    });
-  }
-  getTotalAllJugadores(): number {
-    return this.clubes.reduce((acc, club) => {
-      const aprobados = club.jugadores?.filter((j) => j.estado === 'Aprobado').length || 0;
-      return acc + aprobados;
-    }, 0);
-  }
-
-  // --- NAVEGACIÓN Y HELPERS ---
-
-  navegarCrearJugador(): void {
-    if (this.selectedClub) {
-      this.router.navigate(['/jugador-form'], {
-        queryParams: { clubId: this.selectedClub.id },
-      });
-    }
   }
 
   editarJugador(jugador: Jugador): void {
@@ -182,129 +79,156 @@ export class ClubList implements OnInit {
     }
   }
 
-  getInitials(name: string): string {
-    if (!name) return '??';
-    return name
-      .split(' ')
-      .filter((n) => n.length > 0)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
+  // Lógica para las competencias activas
+  private calcularCompetenciasActivas(clubId: string): void {
+    this.clubesService.getAgendaClub(clubId).subscribe({
+      next: (partidos) => {
+        // Usamos un Set para obtener IDs de torneos únicos
+        const torneosUnicos = new Set(partidos.map((p) => p.torneoId));
+        this.competenciasActivas = torneosUnicos.size;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.competenciasActivas = 0;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // --- GETTERS FILTRADOS ---
+  get jugadoresFiltrados(): Jugador[] {
+    if (!this.selectedClub?.jugadores) return [];
+    return this.selectedClub.jugadores.filter((j) => {
+      const matchesStatus =
+        this.statusFilter === 'Todos' || (j.estado || 'Pendiente') === this.statusFilter;
+      const term = this.searchText.toLowerCase().trim();
+      const matchesText =
+        !term || j.nombreCompleto.toLowerCase().includes(term) || j.dni.toString().includes(term);
+      return matchesStatus && matchesText;
+    });
+  }
+
+  // --- ESTADÍSTICAS GLOBALES ---
+  getTotalAllJugadores(): number {
+    return this.clubes.reduce((acc, club) => {
+      return acc + (club.jugadores?.filter((j) => j.estado === 'Aprobado').length || 0);
+    }, 0);
+  }
+
+  getTotalRegistrosPendientes(): number {
+    return this.clubes.reduce((acc, club) => {
+      return (
+        acc + (club.jugadores?.filter((j) => j.estado === 'Pendiente' || !j.estado).length || 0)
+      );
+    }, 0);
   }
 
   getTotalJugadores(club: Club): number {
-    return club.jugadores ? club.jugadores.length : 0;
+    return club.jugadores?.length || 0;
   }
 
-  //eliminar club
-  showDeleteModalClub = false;
-  clubToDelete: any = null;
+  // --- GESTIÓN DE JUGADORES ---
+  cambiarEstado(jugador: Jugador, nuevoEstado: string): void {
+    // Creamos un objeto JSON parcial con el nuevo estado
+    const data: Partial<Jugador> = { estado: nuevoEstado };
 
-  // Abrir modal
+    this.jugadoresService.updateJugador(jugador.id, data).subscribe({
+      next: (jugadorActualizado) => {
+        // Actualizamos la referencia local para que la UI cambie
+        jugador.estado = jugadorActualizado.estado;
+
+        const msg = nuevoEstado === 'Aprobado' ? 'Jugador Habilitado' : 'Ficha Rechazada';
+        toast.success(msg);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al actualizar en DB:', err);
+        toast.error('No se pudo actualizar el estado en el servidor');
+      },
+    });
+  }
+
+  verDocumentacion(jugador: any) {
+    this.selectedPlayerDocs = jugador;
+    this.showDocsModal = true;
+  }
+
+  confirmDelete(jugador: Jugador) {
+    this.playerToDelete = { id: jugador.id, name: jugador.nombreCompleto };
+    this.showDeleteModal = true;
+  }
+
+  executeDelete() {
+    if (!this.playerToDelete) return;
+    this.jugadoresService.deleteJugador(this.playerToDelete.id).subscribe({
+      next: () => {
+        if (this.selectedClub) {
+          this.selectedClub.jugadores = this.selectedClub.jugadores?.filter(
+            (j) => j.id !== this.playerToDelete.id,
+          );
+        }
+        this.showDeleteModal = false;
+        toast.warning('Jugador eliminado');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // --- GESTIÓN DE CLUBES ---
+  editarClub(club: Club): void {
+    this.router.navigate(['/club-create'], { queryParams: { id: club.id, edit: 'true' } });
+  }
+
   confirmDeleteClub(club: any) {
     this.clubToDelete = club;
     this.showDeleteModalClub = true;
   }
 
-  // Ejecutar eliminación
   executeDeleteClub() {
-    if (!this.clubToDelete) return;
-
     this.clubesService.deleteClub(this.clubToDelete.id).subscribe({
       next: () => {
-        toast.success('Club eliminado', {
-          description: `El club ${this.clubToDelete.nombre} ha sido removido.`,
-        });
+        toast.success('Club eliminado');
         this.showDeleteModalClub = false;
-        this.loadClubs(); // Recargar la lista
-        this.selectedClub = null; // Limpiar selección
-      },
-      error: (err) => {
-        toast.error('Error al eliminar', {
-          description: err.error?.error || 'No se pudo completar la acción.',
-        });
-        this.showDeleteModalClub = false;
+        this.selectedClub = null;
+        this.loadClubs();
       },
     });
   }
-  //exportar plantilla
+
+  // --- NAVEGACIÓN Y EXPORTACIÓN ---
+  navegarCrearJugador(): void {
+    if (this.authService.isRepFederacion()) {
+      toast.error('Los representantes solo pueden auditar fichas existentes');
+      return;
+    }
+
+    if (this.selectedClub && !this.selectedClub.esInvitado) {
+      this.router.navigate(['/jugador-form'], {
+        queryParams: { clubId: this.selectedClub.id },
+      });
+    } else {
+      toast.error('Acción no permitida');
+    }
+  }
+
   async exportarPlantilla() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Plantilla FJH');
 
-    // 1. TÍTULO PRINCIPAL
-    const titleRow = worksheet.addRow(['FEDERACIÓN JUJEÑA DE HANDBALL']);
-    worksheet.mergeCells('A1:H1');
-    titleRow.font = { name: 'Arial', family: 4, size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    titleRow.getCell(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF1D4ED8' }, // Azul Primario FJH
-    };
+    worksheet.addRow(['FEDERACIÓN JUJEÑA DE HANDBALL']).font = { bold: true, size: 14 };
+    worksheet.addRow([`PLANTILLA: ${this.selectedClub?.nombre.toUpperCase()}`]);
+    worksheet.addRow(['Jugador', 'DNI', 'Categoría', 'Estado']);
 
-    // 2. SUBTÍTULO
-    const subTitleRow = worksheet.addRow([
-      `PLANTILLA OFICIAL: ${this.selectedClub?.nombre.toUpperCase()}`,
-    ]);
-    worksheet.mergeCells('A2:H2');
-    subTitleRow.font = { size: 12, bold: true };
-    subTitleRow.alignment = { horizontal: 'center' };
-
-    // 3. CABECERA DE TABLA
-    const headerRow = worksheet.addRow([
-      'Institución',
-      'Jugador',
-      'DNI',
-      'Categoría',
-      'Género',
-      'Estado',
-      'Nacionalidad',
-      'WhatsApp',
-    ]);
-    headerRow.eachCell((cell) => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-      cell.font = { bold: true, color: { argb: 'FF334155' } };
-      cell.border = { bottom: { style: 'thin' } };
-    });
-
-    // 4. DATOS
     this.jugadoresFiltrados.forEach((j) => {
-      const row = worksheet.addRow([
-        this.selectedClub?.nombre,
-        j.nombreCompleto,
-        j.dni,
-        j.categoria,
-        j.genero,
-        j.estado || 'Pendiente',
-        j.nacionalidad,
-        j.whatsapp || 'N/A',
-      ]);
-
-      // Color condicional para el estado
-      const statusCell = row.getCell(6);
-      if (j.estado === 'Aprobado') statusCell.font = { color: { argb: 'FF10B981' }, bold: true };
-      if (j.estado === 'Pendiente') statusCell.font = { color: { argb: 'FFF59E0B' }, bold: true };
-      if (j.estado === 'Rechazado') statusCell.font = { color: { argb: 'FFEF4444' }, bold: true };
+      worksheet.addRow([j.nombreCompleto, j.dni, j.categoria, j.estado || 'Pendiente']);
     });
 
-    // 5. AJUSTES FINALES (Ancho de columnas)
-    worksheet.columns.forEach((column) => {
-      column.width = 20;
-    });
-
-    // 6. DESCARGA
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    saveAs(blob, `FJH_Plantilla_${this.selectedClub?.siglas}.xlsx`);
+    saveAs(new Blob([buffer]), `Plantilla_${this.selectedClub?.siglas}.xlsx`);
   }
-  showDocsModal = false;
-  selectedPlayerDocs: any = null;
 
-  verDocumentacion(jugador: any) {
-    this.selectedPlayerDocs = jugador;
-    this.showDocsModal = true;
+  closeModal() {
+    this.showDeleteModal = false;
   }
 }

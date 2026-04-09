@@ -1,133 +1,195 @@
-<main class="flex-1 overflow-y-auto custom-scrollbar p-8 bg-slate-950">
-  <div class="max-w-7xl mx-auto space-y-8">
+<main class="flex-1 overflow-y-auto bg-slate-950 text-slate-200 custom-scrollbar">
+  <div class="max-w-7xl mx-auto p-4 md:p-8 space-y-6 md:space-y-10">
 
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-      <div>
-        <h2 class="text-3xl font-bold tracking-tight text-white font-display">Generador de Fixture</h2>
-        <p class="text-slate-400 mt-1">Selecciona los clubes y organiza las jornadas del torneo.</p>
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end justify-between border-b border-white/5 pb-6">
+      <div class="space-y-2">
+        <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tight text-white leading-none">Generador de
+          Fixture</h2>
+        <p class="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-widest">FJH • Gestión de Jornadas
+          Oficiales</p>
       </div>
-      <div class="flex gap-3">
-        <p *ngIf="jornadas.length > 0" class="text-xs text-amber-500 self-center mr-2 italic">
-          * Fixture cargado. Al generar de nuevo se perderán los cambios.
-        </p>
-        <button (click)="generar()"
-          class="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/25 hover:brightness-110 transition-all cursor-pointer">
-          <span class="material-symbols-outlined text-lg">auto_awesome</span> Generar Partidos
+
+      <div class="grid grid-cols-2 sm:flex gap-3">
+        <button (click)="generarAutomatico()"
+          class="flex-1 sm:flex-none px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-[10px] md:text-xs hover:bg-slate-800 border border-white/5 cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95">
+          <span class="material-symbols-outlined text-lg">auto_fix</span>
+          <span class="hidden xs:inline">AUTO-GENERAR</span>
+        </button>
+        <button (click)="publicarFixture()" [disabled]="jornadas.length === 0"
+          class="flex-1 sm:flex-none px-6 py-3 bg-primary text-white rounded-2xl font-black text-[10px] md:text-xs shadow-xl shadow-primary/20 hover:brightness-110 disabled:opacity-30 cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95">
+          <span class="material-symbols-outlined text-lg">cloud_upload</span>
+          <span>PUBLICAR FIXTURE</span>
         </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+      <aside class="lg:col-span-4 xl:col-span-3 space-y-6 order-2 lg:order-1">
+        <section
+          class="bg-slate-900/50 border border-white/10 rounded-[2rem] p-5 md:p-6 sticky top-4 md:top-8 shadow-2xl backdrop-blur-md">
+          <h3 class="font-black text-white text-[10px] uppercase tracking-[0.2em] mb-5 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-sm">shield</span> Participantes
+          </h3>
 
-      <div class="xl:col-span-4 space-y-6">
-        <section class="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="font-bold text-white flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary">groups</span> Clubes Participantes
-            </h3>
-            <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full">
-              {{clubesSeleccionados.length}} Seleccionados
-            </span>
+          <div class="mb-6">
+            <div class="relative group">
+              <input type="text" #guestName placeholder="Nombre invitado..."
+                (keyup.enter)="anadirInvitadoALista(guestName.value); guestName.value=''"
+                class="w-full bg-slate-950 border border-white/10 rounded-xl py-3.5 pl-4 pr-12 text-xs text-white outline-none focus:border-primary shadow-inner">
+              <button (click)="anadirInvitadoALista(guestName.value); guestName.value=''"
+                class="absolute right-2 top-1/2 -translate-y-1/2 size-9 bg-primary text-white rounded-lg flex items-center justify-center hover:scale-105 transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-sm">add</span>
+              </button>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-2">
+          <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
             <div *ngFor="let club of clubesDisponibles" (click)="toggleClub(club)"
-              [ngClass]="isSeleccionado(club.id) ? 'bg-primary/10 border-primary/20' : 'bg-white/5 border-transparent'"
-              class="flex items-center justify-between p-3 rounded-xl border cursor-pointer hover:bg-white/10 transition-all group">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center">
-                  <img [src]="'http://localhost:3000' + club.logoUrl" [alt]="club.nombre">
+              [ngClass]="isSeleccionado(club.id) ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5'"
+              class="flex items-center justify-between p-3 rounded-2xl border cursor-pointer hover:border-white/20 transition-all">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="size-8 rounded-lg bg-slate-950 p-1 shrink-0 flex items-center justify-center">
+                  <img *ngIf="club.logoUrl; else starIcon" [src]="apiUrl + club.logoUrl"
+                    class="w-full h-full object-contain">
+                  <ng-template #starIcon><span
+                      class="material-symbols-outlined text-amber-500 text-base">stars</span></ng-template>
                 </div>
-                <span class="text-sm font-semibold text-white">{{club.nombre}}</span>
+                <div class="flex flex-col min-w-0">
+                  <span class="text-[11px] font-bold truncate uppercase text-slate-300">{{club.nombre}}</span>
+                  <span *ngIf="club.esInvitado" class="text-[8px] text-amber-500 font-black uppercase">Equipo
+                    Invitado</span>
+                </div>
               </div>
-              <span class="material-symbols-outlined"
-                [ngClass]="isSeleccionado(club.id) ? 'text-primary' : 'text-slate-600 group-hover:text-slate-400'">
+              <span class="material-symbols-outlined text-base" [class.text-primary]="isSeleccionado(club.id)">
                 {{isSeleccionado(club.id) ? 'check_circle' : 'add_circle'}}
               </span>
             </div>
           </div>
         </section>
-      </div>
+      </aside>
 
-      <div class="xl:col-span-8 space-y-8">
-        <div *ngFor="let jornada of jornadas" class="space-y-4">
-          <div class="flex items-center gap-4">
-            <h4 class="text-lg font-bold text-white font-display">Jornada {{jornada.numero}}</h4>
-            <div class="h-[1px] flex-1 bg-white/5"></div>
+      <div class="lg:col-span-8 xl:col-span-9 space-y-8 order-1 lg:order-2">
+        <div *ngFor="let jornada of jornadas; let i = index"
+          class="p-4 md:p-8 bg-slate-900/30 border border-white/5 rounded-[2.5rem]" (dragover)="$event.preventDefault()"
+          (drop)="onDropPartido($event, jornada)">
+
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-4">
+              <div class="size-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black">
+                {{jornada.numero}} </div>
+              <h4 class="font-black uppercase tracking-tight">Jornada</h4>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="prepararPartidoManual(jornada)"
+                class="text-[10px] font-black text-primary px-4 py-2 rounded-xl border border-primary/20 hover:bg-primary/10 transition-all uppercase cursor-pointer">+
+                Manual</button>
+              <button (click)="eliminarJornada(i)"
+                class="size-10 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all cursor-pointer"><span
+                  class="material-symbols-outlined text-lg">delete</span></button>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div *ngFor="let partido of jornada.partidos"
-              class="bg-slate-900 border border-white/5 rounded-2xl p-5 shadow-sm group">
-              <div class="flex items-center justify-around gap-2 mb-6">
-                <div class="text-center w-24">
-                  <p class="text-xs font-bold truncate text-white">{{partido.local.nombre}}</p>
-                </div>
-                <div class="flex flex-col items-center">
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div *ngFor="let partido of jornada.partidos; let pIdx = index" draggable="true"
+              (dragstart)="onDragStart(partido, jornada)"
+              class="bg-slate-900 border border-white/10 rounded-[1.8rem] p-4 md:p-6 group relative cursor-move hover:border-primary/40 transition-all shadow-xl">
+
+              <button (click)="prepararBorrado(jornada, pIdx)"
+                class="absolute -top-2 -right-2 size-8 bg-red-600 text-white rounded-full flex items-center justify-center border-2 border-slate-950 opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-lg z-20">
+                <span class="material-symbols-outlined text-sm font-bold">close</span>
+              </button>
+
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
                   <div
-                    class="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center text-xs font-bold italic text-slate-500">
-                    VS</div>
+                    class="size-10 bg-slate-950 rounded-xl flex items-center justify-center border border-white/5 p-1 shrink-0">
+                    <img *ngIf="partido.local.logoUrl" [src]="apiUrl + partido.local.logoUrl"
+                      class="w-full h-full object-contain">
+                    <span *ngIf="!partido.local.logoUrl" class="material-symbols-outlined text-amber-500">stars</span>
+                  </div>
+                  <span
+                    class="text-[10px] font-bold text-white truncate w-full text-center uppercase leading-tight">{{partido.local.nombre}}</span>
                 </div>
-                <div class="text-center w-24">
-                  <p class="text-xs font-bold truncate text-white">{{partido.visitante.nombre}}</p>
+                <span class="text-[9px] font-black text-slate-700 italic px-2">VS</span>
+                <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                  <div
+                    class="size-10 bg-slate-950 rounded-xl flex items-center justify-center border border-white/5 p-1 shrink-0">
+                    <img *ngIf="partido.visitante.logoUrl" [src]="apiUrl + partido.visitante.logoUrl"
+                      class="w-full h-full object-contain">
+                    <span *ngIf="!partido.visitante.logoUrl"
+                      class="material-symbols-outlined text-amber-500">stars</span>
+                  </div>
+                  <span
+                    class="text-[10px] font-bold text-white truncate w-full text-center uppercase leading-tight">{{partido.visitante.nombre}}</span>
                 </div>
               </div>
+
               <button (click)="abrirProgramador(partido)"
-                class="w-full py-2.5 bg-primary/5 text-primary rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-primary/10 hover:bg-primary hover:text-white transition-all cursor-pointer">
-                <span class="material-symbols-outlined text-sm">calendar_add_on</span> Programar Partido
+                class="w-full py-2 bg-slate-800/50 rounded-xl text-[10px] font-black text-slate-400 hover:text-primary transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">{{ partido.fecha ? 'calendar_month' : 'schedule'
+                  }}</span>
+                {{ partido.fecha ? (partido.fecha | date:'dd/MM HH:mm') : 'PROGRAMAR' }}
               </button>
             </div>
           </div>
         </div>
 
-        <div *ngIf="jornadas.length > 0" class="pt-8 border-t border-white/5 flex justify-end gap-3">
-          <button
-            class="px-6 py-3 border border-white/10 text-slate-400 rounded-xl font-bold text-sm hover:bg-white/5 transition-colors cursor-pointer">Guardar
-            Borrador</button>
-          <button (click)="publicarFixture()" [disabled]="jornadas.length === 0"
-            class="px-8 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-xl shadow-primary/20 hover:brightness-110 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-            Publicar Calendario Oficial
-          </button>
-        </div>
+        <button (click)="agregarNuevaJornada()"
+          class="w-full py-12 border-2 border-dashed border-white/10 rounded-[2.5rem] text-slate-600 hover:text-primary hover:bg-primary/5 transition-all font-black uppercase tracking-widest text-[10px] flex flex-col items-center gap-3 cursor-pointer group">
+          <span class="material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">add_circle</span>
+          <span>Añadir Nueva Jornada</span>
+        </button>
       </div>
     </div>
   </div>
+</main>
 
-  <div *ngIf="showModal"
-    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl border border-white/10 p-8">
-      <h3 class="text-xl font-bold text-white mb-6">Programar Partido</h3>
-      <div class="space-y-4">
-        <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-          <span class="font-bold text-white text-sm">{{partidoAProgramar?.local.nombre}}</span>
-          <span class="text-slate-500 italic text-xs font-black">VS</span>
-          <span class="font-bold text-white text-sm text-right">{{partidoAProgramar?.visitante.nombre}}</span>
-        </div>
+<div *ngIf="showDeleteModal"
+  class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md">
+  <div class="relative w-full max-w-sm bg-slate-900 border border-red-500/20 rounded-[2.5rem] p-8 text-center">
+    <div class="size-16 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6"><span
+        class="material-symbols-outlined text-4xl">delete</span></div>
+    <h3 class="text-xl font-black text-white uppercase mb-2">¿Eliminar partido?</h3>
+    <p class="text-xs text-slate-500 mb-8 leading-relaxed">Esta acción es permanente si el partido ya fue publicado.</p>
+    <div class="flex flex-col gap-3">
+      <button (click)="confirmarBorrado()"
+        class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-[10px]">Eliminar
+        Permanentemente</button>
+      <button (click)="showDeleteModal = false"
+        class="w-full py-4 bg-slate-800 text-slate-400 rounded-2xl font-black uppercase text-[10px]">Cancelar</button>
+    </div>
+  </div>
+</div>
 
-        <div class="space-y-1">
-          <label class="text-[10px] uppercase text-slate-500 font-bold ml-1">Fecha y Hora</label>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="date" [(ngModel)]="fechaTemp"
-              class="bg-slate-800 border-none rounded-xl py-3 px-4 text-white [color-scheme:dark] text-sm">
-            <input type="time" [(ngModel)]="horaTemp"
-              class="bg-slate-800 border-none rounded-xl py-3 px-4 text-white [color-scheme:dark] text-sm">
+<div *ngIf="showManualModal"
+  class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div
+    class="w-full max-w-4xl bg-slate-900 border border-white/10 rounded-[3rem] p-10 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <h3 class="text-2xl font-black text-white mb-8 uppercase text-center">Crear Partido Manual</h3>
+    <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-10 pr-4 custom-scrollbar">
+      <div *ngFor="let rol of ['Local', 'Visitante']" class="space-y-4">
+        <label class="text-[10px] font-black text-primary uppercase tracking-widest">{{rol}}</label>
+        <div class="grid grid-cols-2 gap-2">
+          <div *ngFor="let club of clubesSeleccionados"
+            (click)="rol === 'Local' ? tempLocal = club : tempVisitante = club"
+            [ngClass]="(rol === 'Local' ? tempLocal?.id : tempVisitante?.id) === club.id ? 'border-primary bg-primary/20' : 'border-white/5 bg-slate-950'"
+            class="p-3 border rounded-xl flex flex-col items-center gap-2 cursor-pointer transition-all">
+            <div class="size-8 flex items-center justify-center">
+              <img *ngIf="club.logoUrl" [src]="apiUrl + club.logoUrl" class="w-full h-full object-contain">
+              <span *ngIf="!club.logoUrl" class="material-symbols-outlined text-amber-500">stars</span>
+            </div>
+            <span class="text-[9px] font-black text-white text-center uppercase truncate w-full">{{club.nombre}}</span>
           </div>
         </div>
-
-        <div class="space-y-1">
-          <label class="text-[10px] uppercase text-slate-500 font-bold ml-1">Cancha / Sede</label>
-          <input type="text" [(ngModel)]="lugarTemp" placeholder="Ej: Microestadio Luján"
-            class="w-full bg-slate-800 border-none rounded-xl py-3 px-4 text-white text-sm placeholder:text-slate-600 focus:ring-2 focus:ring-primary">
-        </div>
-
-        <div class="flex gap-3 pt-4">
-          <button (click)="showModal = false"
-            class="flex-1 py-3 bg-white/5 text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-white/10 transition-colors">Cancelar</button>
-          <button (click)="confirmarProgramacion()"
-            class="flex-1 py-3 bg-primary text-white rounded-xl font-bold text-sm cursor-pointer shadow-lg shadow-primary/20 hover:brightness-110 transition-all">Confirmar</button>
-        </div>
       </div>
     </div>
+    <div class="mt-10 flex gap-3">
+      <button (click)="showManualModal = false"
+        class="flex-1 py-4 bg-white/5 text-slate-400 rounded-2xl font-black uppercase text-[10px]">Cancelar</button>
+      <button (click)="agregarPartidoManual()"
+        [disabled]="!tempLocal || !tempVisitante || tempLocal.id === tempVisitante.id"
+        class="flex-[2] py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] shadow-xl disabled:opacity-20">Confirmar
+        Encuentro</button>
+    </div>
   </div>
-
-</main>
+</div>

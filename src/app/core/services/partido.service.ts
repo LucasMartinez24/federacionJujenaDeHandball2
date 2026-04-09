@@ -56,18 +56,25 @@ export class PartidosService {
   getFixtureByTorneo(torneoId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/torneo/${torneoId}`);
   }
+  // partidos.service.ts
+
   saveFixture(torneoId: string, jornadas: any[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/bulk`, { torneoId, jornadas });
+    // CAMBIO: Antes apuntaba a /bulk, ahora a /torneo/${torneoId}/fixture
+    return this.http.post(`${this.apiUrl}/torneo/${torneoId}/fixture`, { jornadas });
   }
-  updateResultado(
-    id: string,
-    data: { golesLocal: number; golesVisitante: number },
-  ): Observable<any> {
-    // Usamos patch ya que solo actualizamos una parte del recurso (el resultado)
+  updateResultado(id: string, data: any): Observable<any> {
+    // Ahora permitimos que 'data' contenga los detallesJugadores, arbitros, etc.
     return this.http.patch(`${this.apiUrl}/${id}/resultado`, data);
   }
   getTablaPosiciones(torneoId: string): Observable<any[]> {
     // Asegúrate de que la URL coincida con tu backend
     return this.http.get<any[]>(`http://localhost:3000/api/posiciones/torneo/${torneoId}`);
+  }
+  deletePartido(partidoId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${partidoId}`);
+  }
+  getJugadoresPorClub(clubId: string): Observable<any[]> {
+    // OJO: La ruta debe ser /api/clubes/.../jugadores
+    return this.http.get<any[]>(`${environment.apiUrl}/clubes/${clubId}/jugadores`);
   }
 }

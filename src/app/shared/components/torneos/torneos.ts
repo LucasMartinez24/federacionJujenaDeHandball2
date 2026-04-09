@@ -32,18 +32,22 @@ export class Torneos implements OnInit {
   loading = false;
 
   esAdmin: boolean = false;
+  esOficial: boolean = false;
+  puedeGestionar: boolean = false; // Nueva variable para simplificar el HTML
 
   ngOnInit() {
-    this.esAdmin = this.authService.isAdmin();
-    const user = this.authService.getId();
+    const user = this.authService.getCurrentUser();
 
-    if (this.esAdmin) {
-      this.cargarTorneos();
-    } else if (user) {
-      this.cargarTorneosPorClub(user);
-    } else {
-      toast.error('Error de sesión: No se identificó el club.');
-    }
+    // Definimos roles
+    this.esAdmin = this.authService.isAdmin();
+    this.esOficial = this.authService.isOficialMesa();
+
+    // El Representante también se considera gestión en este contexto si así lo deseas
+    const esRep = this.authService.isRepFederacion();
+
+    // "puedeGestionar" agrupa a quienes pueden crear y administrar fixture
+    this.puedeGestionar = this.esAdmin || this.esOficial || esRep;
+    this.cargarTorneos();
   }
 
   cargarTorneosPorClub(clubId: string) {

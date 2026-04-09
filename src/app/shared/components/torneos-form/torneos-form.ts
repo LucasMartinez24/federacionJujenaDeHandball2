@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { TorneosService } from '../../../core/services/torneos.service';
 import { toast } from 'ngx-sonner';
+
 @Component({
   selector: 'app-torneos-form',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './torneos-form.html',
-  styleUrl: './torneos-form.css',
 })
 export class TorneosForm implements OnInit {
   private fb = inject(FormBuilder);
@@ -21,13 +22,12 @@ export class TorneosForm implements OnInit {
   torneoId: string | null = null;
   loading = false;
 
-  // Opciones de Temas Visuales (colorClase)
   themes = [
-    { name: 'Classic Blue', class: 'from-primary to-blue-800' },
-    { name: 'Sunset Fire', class: 'from-orange-500 to-red-700' },
-    { name: 'Forest Depth', class: 'from-emerald-600 to-teal-800' },
-    { name: 'Royal Purple', class: 'from-indigo-600 to-purple-800' },
-    { name: 'Midnight Slate', class: 'from-slate-700 to-slate-900' },
+    { name: 'Azul Pizarra', class: 'from-blue-600 to-indigo-950' },
+    { name: 'Lava', class: 'from-red-600 to-orange-950' },
+    { name: 'Amazonas', class: 'from-emerald-500 to-teal-950' },
+    { name: 'Galaxy', class: 'from-purple-600 to-fuchsia-950' },
+    { name: 'Carbono', class: 'from-slate-700 to-slate-950' },
   ];
 
   ngOnInit(): void {
@@ -38,29 +38,29 @@ export class TorneosForm implements OnInit {
   private initForm(): void {
     this.torneoForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(5)]],
-      categoria: ['Primera División A', Validators.required],
+      categoria: ['Primera División', Validators.required],
       rama: ['Male', Validators.required],
-      estado: ['Upcoming', Validators.required],
       fechaInicio: ['', Validators.required],
+      colorClase: [this.themes[0].class, Validators.required],
       progreso: [0],
-      formato: ['elimination', Validators.required], // elimination, league, super4
-      idaVuelta: [false], // Nueva opción para Ligas
-      colorClase: ['from-primary to-blue-800', Validators.required],
     });
-  }
-
-  // Método para el checkbox de ida y vuelta
-  toggleIdaVuelta() {
-    const current = this.torneoForm.get('idaVuelta')?.value;
-    this.torneoForm.patchValue({ idaVuelta: !current });
   }
 
   private checkEditMode(): void {
     this.torneoId = this.route.snapshot.paramMap.get('id');
     if (this.torneoId) {
       this.isEditMode = true;
-      // Aquí cargarías los datos del torneo desde tu servicio
-      // this.torneosService.getTorneoById(this.torneoId).subscribe(...)
+      this.loading = true;
+      this.torneosService.getTorneoById(this.torneoId).subscribe({
+        next: (torneo) => {
+          this.torneoForm.patchValue(torneo);
+          this.loading = false;
+        },
+        error: () => {
+          toast.error('No se pudo recuperar el torneo');
+          this.router.navigate(['/torneos']);
+        },
+      });
     }
   }
 
@@ -75,13 +75,44 @@ export class TorneosForm implements OnInit {
   onSubmit(): void {
     if (this.torneoForm.invalid) {
       this.torneoForm.markAllAsTouched();
+      toast.error('Completa los campos requeridos');
       return;
     }
 
     this.loading = true;
+
+    // 1. Manejo de la fecha para evitar desfases de zona horaria
+    const fechaSeleccionada = new Date(this.torneoForm.value.fechaInicio);
+    // Sumamos la diferencia horaria para que no se guarde el día anterior
+    fechaSeleccionada.setMinutes(
+      fechaSeleccionada.getMinutes() + fechaSeleccionada.getTimezoneOffset(),
+    );
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // 2. Lógica de estado automática (asegúrate que estos strings coincidan con tu ENUM de Prisma)
+    // Normalmente en tu base de datos son: "Upcoming", "In Progress", "Completed"
+    const estadoCalculado = fechaSeleccionada <= hoy ? 'In Progress' : 'Upcoming';
+
+    // 3. Construcción del objeto final (Payload)
+    const payload = {
+      nombre: this.torneoForm.value.nombre,
+      categoria: this.torneoForm.value.categoria,
+      rama: this.torneoForm.value.rama,
+      fechaInicio: fechaSeleccionada.toISOString(), // Enviamos formato ISO estándar
+      colorClase: this.torneoForm.value.colorClase,
+      estado: estadoCalculado,
+      progreso: 0,
+      // Si tu backend espera formato e idaVuelta aunque los hayamos quitado de la vista,
+      // mándalos por defecto para evitar el error 500:
+      formato: 'league',
+      idaVuelta: false,
+    };
+
     const request = this.isEditMode
-      ? this.torneosService.updateTorneo(this.torneoId!, this.torneoForm.value)
-      : this.torneosService.crearTorneo(this.torneoForm.value);
+      ? this.torneosService.updateTorneo(this.torneoId!, payload)
+      : this.torneosService.crearTorneo(payload);
 
     request.subscribe({
       next: () => {
@@ -90,7 +121,8 @@ export class TorneosForm implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        toast.error('Error al procesar la solicitud');
+        console.error('Error 500 del Servidor:', err);
+        toast.error('Error interno del servidor. Revisa la consola del backend.');
       },
     });
   }

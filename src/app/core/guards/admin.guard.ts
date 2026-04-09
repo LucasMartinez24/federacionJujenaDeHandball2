@@ -1,3 +1,4 @@
+// core/guards/admin.guard.ts
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -11,7 +12,8 @@ export const adminGuard: CanActivateFn = () => {
     return false;
   }
 
-  if (authService.isAdmin()) {
+  // Permite el paso si es Admin o Representante de Federación
+  if (authService.canManageClubs()) {
     return true;
   }
 

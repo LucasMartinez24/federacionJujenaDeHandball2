@@ -8,8 +8,9 @@ export interface Club {
   id: string;
   nombre: string;
   siglas: string;
-  username: string;
-  logoUrl?: string; // <--- Agregamos esta propiedad
+  username?: string; // Opcional ahora
+  logoUrl?: string;
+  esInvitado: boolean; // Agregamos esta marca
   jugadores?: Jugador[];
 }
 
@@ -31,5 +32,11 @@ export class ClubesService {
   }
   deleteClub(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+  crearClubInvitado(datos: { nombre: string; siglas: string }): Observable<Club> {
+    return this.http.post<Club>(`${this.apiUrl}/invitado-rapido`, datos);
+  }
+  getAgendaClub(clubId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${clubId}/agenda-completa`);
   }
 }
