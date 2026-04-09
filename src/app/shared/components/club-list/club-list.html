@@ -64,8 +64,7 @@
 
             <div
               class="size-10 md:size-12 rounded-lg bg-gray-900 flex items-center justify-center overflow-hidden border border-charcoal-border shrink-0">
-              <img *ngIf="club.logoUrl; else clubStar" [src]="apiUrl + club.logoUrl"
-                class="w-full h-full object-contain p-1">
+              <img *ngIf="club.logoUrl; else clubStar" [src]="club.logoUrl" class="w-full h-full object-contain p-1">
               <ng-template #clubStar><span
                   class="material-symbols-outlined text-amber-500 text-xl">stars</span></ng-template>
             </div>
@@ -88,7 +87,7 @@
                 <div class="relative group">
                   <div
                     class="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-charcoal flex items-center justify-center overflow-hidden border border-gray-700">
-                    <img *ngIf="selectedClub.logoUrl" [src]="apiUrl + selectedClub.logoUrl" [alt]="selectedClub.nombre">
+                    <img *ngIf="selectedClub.logoUrl" [src]="selectedClub.logoUrl" [alt]="selectedClub.nombre">
                     <span *ngIf="!selectedClub.logoUrl"
                       class="material-symbols-outlined text-amber-500 text-5xl">stars</span>
                   </div>
