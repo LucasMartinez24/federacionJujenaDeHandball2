@@ -18,12 +18,14 @@ export class FixtureManagement implements OnInit {
   private route = inject(ActivatedRoute);
   private partidosService = inject(PartidosService);
   private torneosService = inject(TorneosService);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
+  public readonly apiUrl = environment.apiUrl;
   public esAdmin: boolean = false;
   torneoId: string | null = null;
   torneoNombre: string = 'Cargando...';
+  torneoCategoria: string = '';
   mostrarTabla = false;
 
   jornadasIds: number[] = [];
@@ -36,7 +38,7 @@ export class FixtureManagement implements OnInit {
   modoLectura = false;
   partidoSeleccionado: any = null;
 
-  // Modal Invitado (Jugador manual en acta)
+  // Modal Invitado
   showInvitadoModal = false;
   equipoInvitado: 'local' | 'visitante' = 'local';
   nuevoInvitado = { nombre: '', numero: '' };
@@ -52,15 +54,21 @@ export class FixtureManagement implements OnInit {
   observaciones = '';
   passwordAdmin = '';
   private readonly PASS_ADMIN_SECRETA = 'Planilla_fede2026';
-
+  [key: string]: any;
   jugadoresLocal: any[] = [];
   jugadoresVisitante: any[] = [];
-  [key: string]: any;
+
+  // Mapeo de categorías permitidas (Regla FJH)
+  private readonly CATEGORIAS_PERMITIDAS: { [key: string]: string[] } = {
+    Primera: ['Primera', 'Juveniles'],
+    Juveniles: ['Juveniles', 'Cadetes'],
+    Cadetes: ['Cadetes', 'Menores'],
+    Menores: ['Menores', 'Infantiles'],
+    Infantiles: ['Infantiles', 'Pre-Infantiles'],
+  };
 
   ngOnInit() {
     this.torneoId = this.route.snapshot.paramMap.get('id');
-
-    // 2. Definimos quién puede gestionar (Admin y Oficial de Mesa)
     this.esAdmin =
       this.authService.isAdmin() ||
       this.authService.isOficialMesa() ||
@@ -75,6 +83,7 @@ export class FixtureManagement implements OnInit {
   cargarDatosIniciales() {
     this.torneosService.getTorneoById(this.torneoId!).subscribe((t) => {
       this.torneoNombre = t.nombre;
+      this.torneoCategoria = t.categoria;
       this.partidosService.getJornadasDisponibles(this.torneoId!).subscribe((ids) => {
         this.jornadasIds = ids;
         if (this.jornadasIds.length > 0) this.cargarFixture(this.jornadasIds[0]);
@@ -118,8 +127,6 @@ export class FixtureManagement implements OnInit {
     }
 
     this.showScoreModal = true;
-
-    // Carga de listas oficiales (siempre existen local y visitante como objetos Club)
     this.cargarListaEquipo(partido.localId, 'local', partido.eventos);
     this.cargarListaEquipo(partido.visitanteId, 'visitante', partido.eventos);
   }
@@ -127,19 +134,52 @@ export class FixtureManagement implements OnInit {
   private cargarListaEquipo(clubId: string, lado: 'local' | 'visitante', eventos: any[]) {
     this.partidosService.getJugadoresPorClub(clubId).subscribe({
       next: (res) => {
-        // 1. Mapeamos los jugadores oficiales
-        const oficialesMapeados = res.map((j: any) => this.mapearJugador(j, eventos));
+        // 1. Obtenemos la categoría tal cual viene del torneo
+        const catTorneoOriginal = this.torneoCategoria;
 
-        // 2. BUSCAR INVITADOS MANUALES EN LOS EVENTOS
-        // Filtramos eventos de este equipo que no tengan jugadorId y agrupamos por nombre
+        // 2. Mapa de permisos (Claves exactas de tu <select>)
+        const mapaPermitidas: { [key: string]: string[] } = {
+          'Primera División': ['primera', 'juveniles'],
+          '+35': ['primera', '+35 (veteranos)', 'ambas (primera y +35)'],
+          Juveniles: ['juveniles', 'cadetes'],
+          Cadetes: ['cadetes', 'menores'],
+          Menores: ['menores', 'infantiles'],
+          Infantiles: ['infantiles', 'pre-infantiles'],
+        };
+
+        // 3. Obtenemos las categorías permitidas
+        // Usamos trim() para evitar errores por espacios invisibles
+        const aptasRaw = mapaPermitidas[catTorneoOriginal] || [catTorneoOriginal];
+
+        // Convertimos todo a minúsculas para una comparación "ciega" y segura
+        const aptas = aptasRaw.map((a) => a.toLowerCase().trim());
+
+        console.log(`--- CARGA FJH: ${catTorneoOriginal} ---`);
+
+        // 4. Filtrado de jugadores
+        const oficialesMapeados = res
+          .filter((j: any) => {
+            if (!j.categoria) return false;
+
+            const catJugador = j.categoria.toLowerCase().trim();
+            const esApto = aptas.includes(catJugador);
+
+            if (!esApto) {
+              console.warn(
+                `Jugador excluido: ${j.nombreCompleto} (${j.categoria}) no apto para ${catTorneoOriginal}`,
+              );
+            }
+            return esApto;
+          })
+          .map((j: any) => this.mapearJugador(j, eventos));
+
+        // 5. Mapeo de invitados (sin cambios)
         const eventosInvitados = eventos.filter((e) => e.equipoId === clubId && !e.jugadorId);
         const nombresUnicos = [...new Set(eventosInvitados.map((e) => e.nombreInvitado))];
-
         const invitadosMapeados = nombresUnicos.map((nombre) => {
-          // Buscamos el primer evento de este invitado para sacar su número (dorsal)
           const primerEvento = eventosInvitados.find((e) => e.nombreInvitado === nombre);
           return {
-            id: null, // Identificador de que es invitado manual
+            id: null,
             nombreCompleto: nombre,
             numero: primerEvento?.numeroInvitado || 0,
             goles: eventosInvitados.filter((e) => e.nombreInvitado === nombre && e.tipo === 'GOL')
@@ -154,7 +194,6 @@ export class FixtureManagement implements OnInit {
           };
         });
 
-        // 3. Unimos ambas listas
         const listaCompleta = [...oficialesMapeados, ...invitadosMapeados];
 
         if (lado === 'local') this.jugadoresLocal = listaCompleta;
@@ -162,7 +201,7 @@ export class FixtureManagement implements OnInit {
 
         this.cdr.detectChanges();
       },
-      error: () => toast.error(`Error al cargar lista del equipo ${lado}`),
+      error: () => toast.error(`Error al cargar equipo ${lado}`),
     });
   }
 
@@ -180,54 +219,41 @@ export class FixtureManagement implements OnInit {
     };
   }
 
+  // --- ELIMINAR JUGADOR INVITADO ---
+  eliminarInvitado(lista: any[], index: number) {
+    if (this.modoLectura) return;
+    lista.splice(index, 1);
+    toast.info('Invitado removido del acta');
+    this.cdr.detectChanges();
+  }
+
   confirmarResultado(): void {
-    // 1. Validaciones con guard clauses limpias
     if (this.passwordAdmin !== this.PASS_ADMIN_SECRETA) {
       toast.error('PIN incorrecto');
       return;
     }
 
-    if (this.htLocal > this.gLocal || this.htVisitante > this.gVisitante) {
-      toast.error('HT incoherente: los goles al entretiempo no pueden superar al final');
+    const sumaGLocal = this.jugadoresLocal.reduce((acc, j) => acc + (j.goles || 0), 0);
+    const sumaGVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + (j.goles || 0), 0);
+
+    if (sumaGLocal !== this.gLocal || sumaGVisitante !== this.gVisitante) {
+      toast.error('La suma de goles individuales no coincide con el marcador global');
       return;
     }
 
-    const sumaGolesLocal = this.jugadoresLocal.reduce((acc, j) => acc + (j.goles || 0), 0);
-    const sumaGolesVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + (j.goles || 0), 0);
-
-    if (sumaGolesLocal !== this.gLocal || sumaGolesVisitante !== this.gVisitante) {
-      toast.error('La suma de goles individuales no coincide con el total del marcador');
-      return;
-    }
-
-    // 2. Preparación de la planilla
     const planillaFinal = [
       ...this.jugadoresLocal.map((j) => ({
         ...j,
         equipoId: this.partidoSeleccionado.localId,
         jugadorId: j.id,
-        nombreCompleto: j.nombreCompleto,
       })),
       ...this.jugadoresVisitante.map((j) => ({
         ...j,
         equipoId: this.partidoSeleccionado.visitanteId,
         jugadorId: j.id,
-        nombreCompleto: j.nombreCompleto,
       })),
-    ].filter(
-      (j) =>
-        // CONDICIÓN ACTUALIZADA:
-        // 1. Si tiene alguna estadística (Goles, AM, Excl, Rojas, Azules)
-        j.goles > 0 ||
-        j.am > 0 ||
-        j.excl > 0 ||
-        j.roja ||
-        j.azul ||
-        // 2. O SI ES UN INVITADO (queremos que quede registrado en el acta aunque no anote)
-        j.id === null,
-    );
+    ].filter((j) => j.goles > 0 || j.am > 0 || j.excl > 0 || j.roja || j.azul || j.id === null);
 
-    // 3. Construcción del Payload
     const payload = {
       golesLocal: Number(this.gLocal),
       golesVisitante: Number(this.gVisitante),
@@ -240,22 +266,17 @@ export class FixtureManagement implements OnInit {
       detallesJugadores: planillaFinal,
     };
 
-    // 4. Envío al Servidor
     this.partidosService.updateResultado(this.partidoSeleccionado.id, payload).subscribe({
       next: () => {
         this.showScoreModal = false;
         this.cargarFixture(this.jornadaSeleccionada);
         this.cargarTabla();
-        toast.success('Acta oficializada correctamente');
+        toast.success('Acta oficializada');
       },
-      error: (err) => {
-        console.error(err);
-        toast.error('Error: ' + (err.error?.error || 'No se pudo guardar el acta'));
-      },
+      error: (err) => toast.error('Error al guardar: ' + err.error?.error),
     });
   }
 
-  // --- MÉTODOS DE APOYO ---
   limpiarDatosModal() {
     this.gLocal = 0;
     this.gVisitante = 0;
@@ -278,7 +299,7 @@ export class FixtureManagement implements OnInit {
 
   confirmarInvitado() {
     const inv = {
-      id: null, // Jugador invitado manual
+      id: null,
       nombreCompleto: this.nuevoInvitado.nombre.toUpperCase(),
       numero: this.nuevoInvitado.numero,
       goles: 0,
@@ -287,8 +308,8 @@ export class FixtureManagement implements OnInit {
       roja: false,
       azul: false,
     };
-    if (this.equipoInvitado === 'local') this.jugadoresLocal = [...this.jugadoresLocal, inv];
-    else this.jugadoresVisitante = [...this.jugadoresVisitante, inv];
+    if (this.equipoInvitado === 'local') this.jugadoresLocal.push(inv);
+    else this.jugadoresVisitante.push(inv);
     this.showInvitadoModal = false;
   }
 

@@ -45,7 +45,7 @@ export class JugadorFormComponent implements OnInit {
     equipo: 'A',
     estado: 'Pendiente',
     clubId: '',
-    categoriaEspecial: 'Primera', // Campo para veteranos
+    categoriaEspecial: null,
   };
 
   birthDate = '';
@@ -117,12 +117,13 @@ export class JugadorFormComponent implements OnInit {
       peso: j.peso,
       altura: j.altura,
       equipo: j.equipo || 'A',
-      categoriaEspecial: j.categoriaEspecial || 'Primera',
+      categoriaEspecial: j.categoriaEspecial,
       estado: j.estado,
       clubId: j.clubId,
     };
     this.birthDate = j.fechaNacimiento.split('T')[0];
     this.selectedHand = j.manoHabil;
+    this.selectedCategory = j.categoria; // Cargar la categoría guardada
     this.onDateChange(this.birthDate);
 
     if (j.fichaMedicaUrl) this.fileNames.fichaMedica = 'Archivo guardado';
@@ -152,22 +153,22 @@ export class JugadorFormComponent implements OnInit {
   onDateChange(newDate: string) {
     if (!newDate) return;
     const birthYear = new Date(newDate).getFullYear();
-    const age = 2026 - birthYear; // Referencia año actual sistema
+    const age = 2026 - birthYear;
 
     this.isMinor = age < 18;
 
-    // Lógica de Categorías Base
-    if (age <= 12) this.selectedCategory = 'Infantiles (u12)';
-    else if (age <= 14) this.selectedCategory = 'Menores (u14)';
-    else if (age <= 16) this.selectedCategory = 'Cadetes (u16)';
-    else if (age <= 18) this.selectedCategory = 'Juveniles (u18)';
+    if (age <= 12) this.selectedCategory = 'Infantiles';
+    else if (age <= 14) this.selectedCategory = 'Menores';
+    else if (age <= 16) this.selectedCategory = 'Cadetes';
+    else if (age <= 18) this.selectedCategory = 'Juveniles';
     else this.selectedCategory = 'Primera';
 
-    // Lógica para Mayores de 35 (Veteranos)
     if (age >= 35) {
       this.mostrarSelectorEspecial = true;
       this.opcionesCategoriaEspecial = ['Primera', '+35 (Veteranos)', 'Ambas (Primera y +35)'];
-      if (!this.isEditMode) this.jugadorData.categoriaEspecial = 'Primera';
+      if (!this.isEditMode && !this.jugadorData.categoriaEspecial) {
+        this.jugadorData.categoriaEspecial = 'Primera';
+      }
     } else {
       this.mostrarSelectorEspecial = false;
       this.jugadorData.categoriaEspecial = null;
@@ -185,37 +186,48 @@ export class JugadorFormComponent implements OnInit {
     }
   }
 
+  // jugador-form.component.ts
+
   onFinalize() {
     this.errorMessage = '';
+
+    // Validaciones básicas
     if (!this.fileNames.fichaJugador) {
       this.errorMessage = 'La Ficha de Jugador es obligatoria.';
       return;
     }
     if (this.isMinor && !this.fileNames.autorizacionPadres) {
-      this.errorMessage = 'Requiere Autorización de Padres.';
-      return;
-    }
-    if (!this.jugadorData.dni || !this.jugadorData.apellidos || !this.birthDate) {
-      this.errorMessage = 'Completa los campos obligatorios.';
+      this.errorMessage = 'Los menores requieren Autorización de Padres.';
       return;
     }
 
     const formData = new FormData();
+
+    // 1. Datos base: Solo agregar si tienen valor real
     Object.keys(this.jugadorData).forEach((key) => {
-      if (this.jugadorData[key] !== null && this.jugadorData[key] !== undefined) {
-        formData.append(key, this.jugadorData[key]);
+      const value = this.jugadorData[key];
+      if (value !== null && value !== undefined && value !== '') {
+        formData.append(key, value);
       }
     });
 
-    formData.append('nombreCompleto', `${this.jugadorData.apellidos}, ${this.jugadorData.nombres}`);
+    // 2. Datos obligatorios calculados
+    formData.append(
+      'nombreCompleto',
+      `${this.jugadorData.apellidos.toUpperCase()}, ${this.jugadorData.nombres.toUpperCase()}`,
+    );
     formData.append('fechaNacimiento', this.birthDate);
-    formData.append('categoria', this.selectedCategory);
+    formData.append('categoria', this.selectedCategory); // La categoría que calculaste en onDateChange
     formData.append('manoHabil', this.selectedHand);
 
-    if (this.files.fichaMedica) formData.append('fichaMedica', this.files.fichaMedica);
-    if (this.files.fichaJugador) formData.append('fichaJugador', this.files.fichaJugador);
-    if (this.isMinor && this.files.autorizacionPadres)
+    // 3. Archivos (Solo si son nuevos archivos de tipo File)
+    if (this.files.fichaMedica instanceof File)
+      formData.append('fichaMedica', this.files.fichaMedica);
+    if (this.files.fichaJugador instanceof File)
+      formData.append('fichaJugador', this.files.fichaJugador);
+    if (this.isMinor && this.files.autorizacionPadres instanceof File) {
       formData.append('autorizacionPadres', this.files.autorizacionPadres);
+    }
 
     const request =
       this.isEditMode && this.jugadorId
@@ -224,11 +236,12 @@ export class JugadorFormComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        toast.success('Operación exitosa');
+        toast.success('¡Jugador registrado con éxito!');
         window.history.back();
       },
       error: (err) => {
-        this.errorMessage = err.error?.error || 'Error en el servidor';
+        console.error(err);
+        this.errorMessage = err.error?.error || 'Error al conectar con el servidor';
         this.cdr.detectChanges();
       },
     });
