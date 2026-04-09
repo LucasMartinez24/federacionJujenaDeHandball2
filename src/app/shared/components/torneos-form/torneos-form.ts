@@ -39,7 +39,7 @@ export class TorneosForm implements OnInit {
     this.torneoForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(5)]],
       categoria: ['Primera División', Validators.required],
-      rama: ['Male', Validators.required],
+      rama: ['Masculino', Validators.required],
       fechaInicio: ['', Validators.required],
       colorClase: [this.themes[0].class, Validators.required],
       progreso: [0],
