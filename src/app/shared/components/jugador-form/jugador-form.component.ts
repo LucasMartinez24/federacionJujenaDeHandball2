@@ -165,7 +165,7 @@ export class JugadorFormComponent implements OnInit {
 
     if (age >= 35) {
       this.mostrarSelectorEspecial = true;
-      this.opcionesCategoriaEspecial = ['Primera', '+35 (Veteranos)', 'Ambas (Primera y +35)'];
+      this.opcionesCategoriaEspecial = ['Primera', '+35'];
       if (!this.isEditMode && !this.jugadorData.categoriaEspecial) {
         this.jugadorData.categoriaEspecial = 'Primera';
       }

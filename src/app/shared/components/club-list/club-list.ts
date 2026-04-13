@@ -49,7 +49,6 @@ export class ClubList implements OnInit {
     this.isLoading = true;
     this.clubesService.getClubes().subscribe({
       next: (res) => {
-        // Normalización de datos para asegurar que esInvitado sea booleano
         this.clubes = (res || []).map((c) => ({
           ...c,
           esInvitado: !!c.esInvitado,
@@ -79,11 +78,9 @@ export class ClubList implements OnInit {
     }
   }
 
-  // Lógica para las competencias activas
   private calcularCompetenciasActivas(clubId: string): void {
     this.clubesService.getAgendaClub(clubId).subscribe({
       next: (partidos) => {
-        // Usamos un Set para obtener IDs de torneos únicos
         const torneosUnicos = new Set(partidos.map((p) => p.torneoId));
         this.competenciasActivas = torneosUnicos.size;
         this.cdr.detectChanges();
@@ -95,8 +92,8 @@ export class ClubList implements OnInit {
     });
   }
 
-  // --- GETTERS FILTRADOS ---
-  get jugadoresFiltrados(): Jugador[] {
+  // --- GETTERS FILTRADOS CON LÓGICA DE CATEGORÍA ---
+  get jugadoresFiltrados(): any[] {
     if (!this.selectedClub?.jugadores) return [];
     return this.selectedClub.jugadores.filter((j) => {
       const matchesStatus =
@@ -123,28 +120,19 @@ export class ClubList implements OnInit {
     }, 0);
   }
 
-  getTotalJugadores(club: Club): number {
-    return club.jugadores?.length || 0;
-  }
-
   // --- GESTIÓN DE JUGADORES ---
   cambiarEstado(jugador: Jugador, nuevoEstado: string): void {
-    // Creamos un objeto JSON parcial con el nuevo estado
     const data: Partial<Jugador> = { estado: nuevoEstado };
-
     this.jugadoresService.updateJugador(jugador.id, data).subscribe({
       next: (jugadorActualizado) => {
-        // Actualizamos la referencia local para que la UI cambie
         jugador.estado = jugadorActualizado.estado;
-
         const msg = nuevoEstado === 'Aprobado' ? 'Jugador Habilitado' : 'Ficha Rechazada';
         toast.success(msg);
-
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error al actualizar en DB:', err);
-        toast.error('No se pudo actualizar el estado en el servidor');
+        console.error('Error al actualizar:', err);
+        toast.error('Error al conectar con el servidor');
       },
     });
   }
@@ -196,13 +184,11 @@ export class ClubList implements OnInit {
     });
   }
 
-  // --- NAVEGACIÓN Y EXPORTACIÓN ---
   navegarCrearJugador(): void {
     if (this.authService.isRepFederacion()) {
       toast.error('Los representantes solo pueden auditar fichas existentes');
       return;
     }
-
     if (this.selectedClub && !this.selectedClub.esInvitado) {
       this.router.navigate(['/jugador-form'], {
         queryParams: { clubId: this.selectedClub.id },
@@ -215,13 +201,13 @@ export class ClubList implements OnInit {
   async exportarPlantilla() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Plantilla FJH');
-
     worksheet.addRow(['FEDERACIÓN JUJEÑA DE HANDBALL']).font = { bold: true, size: 14 };
     worksheet.addRow([`PLANTILLA: ${this.selectedClub?.nombre.toUpperCase()}`]);
     worksheet.addRow(['Jugador', 'DNI', 'Categoría', 'Estado']);
 
     this.jugadoresFiltrados.forEach((j) => {
-      worksheet.addRow([j.nombreCompleto, j.dni, j.categoria, j.estado || 'Pendiente']);
+      const cat = j.categoriaEspecial || j.categoria;
+      worksheet.addRow([j.nombreCompleto, j.dni, cat, j.estado || 'Pendiente']);
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
