@@ -33,7 +33,7 @@
         <span class="font-medium">Clubes / Auditoría</span>
       </a>
 
-      <a *ngIf="authService.isAdmin() || authService.isOficialMesa() || authService.isJefeArbitros() || authService.isClub()"
+      <a *ngIf="authService.isAdmin() || authService.isRepFederacion() || authService.isOficialMesa() || authService.isJefeArbitros() || authService.isClub()"
         (click)="closeMenu()" routerLink="/torneos" routerLinkActive="active-link" class="nav-item">
         <span class="material-symbols-outlined">trophy</span>
         <span class="font-medium">Torneos</span>

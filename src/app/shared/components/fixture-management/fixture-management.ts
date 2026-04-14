@@ -52,6 +52,7 @@ export class FixtureManagement implements OnInit {
   observaciones = '';
   passwordAdmin = '';
   private readonly PASS_ADMIN_SECRETA = 'Planilla_fede2026';
+  private readonly PASS_ADMIN_SECRETA_ALT = 'JugadoresFederacion_2026';
 
   jugadoresLocal: any[] = [];
   jugadoresVisitante: any[] = [];
@@ -71,7 +72,8 @@ export class FixtureManagement implements OnInit {
     this.esAdmin =
       this.authService.isAdmin() ||
       this.authService.isOficialMesa() ||
-      this.authService.isJefeArbitros();
+      this.authService.isJefeArbitros() ||
+      this.authService.isRepFederacion();
 
     if (this.torneoId) {
       this.cargarDatosIniciales();
@@ -248,7 +250,10 @@ export class FixtureManagement implements OnInit {
 
   // ... (confirmarResultado, limpiarDatosModal, abrirModalInvitado, confirmarInvitado, trackByPartidoId)
   confirmarResultado(): void {
-    if (this.passwordAdmin !== this.PASS_ADMIN_SECRETA) {
+    if (
+      this.passwordAdmin !== this.PASS_ADMIN_SECRETA &&
+      this.passwordAdmin !== this.PASS_ADMIN_SECRETA_ALT
+    ) {
       toast.error('PIN incorrecto');
       return;
     }

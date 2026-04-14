@@ -59,7 +59,7 @@ export const routes: Routes = [
     path: 'torneos',
     loadComponent: () => import('./shared/components/torneos/torneos').then((m) => m.Torneos),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // 'user' añadido para que el club vea torneos
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // 'user' añadido para que el club vea torneos
     title: 'Torneos Oficiales',
   },
   {
@@ -67,7 +67,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./shared/components/torneos-form/torneos-form').then((m) => m.TorneosForm),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'OFICIAL_MESA'] },
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA'] },
     title: 'Nuevo Torneo',
   },
   {
@@ -77,7 +77,7 @@ export const routes: Routes = [
         (m) => m.FixtureGenerator,
       ),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'OFICIAL_MESA'] }, // Planillero puede generar fixture
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA'] }, // Planillero puede generar fixture
     title: 'Generador Fixture',
   },
   {
@@ -87,7 +87,7 @@ export const routes: Routes = [
         (m) => m.FixtureManagement,
       ),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // Todos ven el acta, pero el componente filtrará botones por rol
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // Todos ven el acta, pero el componente filtrará botones por rol
     title: 'Acta de Partido',
   },
 
