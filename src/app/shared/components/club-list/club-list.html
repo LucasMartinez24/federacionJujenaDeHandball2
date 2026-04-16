@@ -211,12 +211,22 @@
 </div>
 
 <div *ngIf="showDocsModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+
   <div (click)="showDocsModal = false" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+
+
+
   <div
     class="relative bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+
     <h3 class="text-xl font-bold text-white mb-1">Documentación</h3>
+
     <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest font-bold">{{ selectedPlayerDocs?.nombreCompleto }}
+
     </p>
+
+
+
     <div class="space-y-3">
       <a *ngIf="selectedPlayerDocs?.fichaJugadorUrl" [href]="selectedPlayerDocs.fichaJugadorUrl" target="_blank"
         class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
@@ -226,11 +236,67 @@
         </div>
         <span
           class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+
       </a>
+
+
+
+      <a *ngIf="selectedPlayerDocs?.fichaMedicaUrl" [href]="selectedPlayerDocs.fichaMedicaUrl" target="_blank"
+        class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
+
+        <div class="flex items-center gap-3">
+
+          <span class="material-symbols-outlined text-emerald-500">medical_services</span>
+
+          <span class="text-sm font-bold text-slate-200">Certificado Médico</span>
+
+        </div>
+
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+
+      </a>
+
+
+
+      <a *ngIf="selectedPlayerDocs?.autorizacionUrl" [href]="selectedPlayerDocs.autorizacionUrl" target="_blank"
+        class="flex items-center justify-between p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-white/5 transition-all group">
+
+        <div class="flex items-center gap-3">
+
+          <span class="material-symbols-outlined text-amber-500">family_history</span>
+
+          <span class="text-sm font-bold text-slate-200">Aut. de Padres</span>
+
+        </div>
+
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">open_in_new</span>
+
+      </a>
+
+
+
+      <p *ngIf="!selectedPlayerDocs?.fichaJugadorUrl && !selectedPlayerDocs?.fichaMedicaUrl && !selectedPlayerDocs?.autorizacionUrl"
+        class="text-center py-4 text-slate-500 text-sm italic">
+
+        No se cargaron documentos para este jugador.
+
+      </p>
+
     </div>
+
+
+
     <button (click)="showDocsModal = false"
-      class="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all">Cerrar</button>
+      class="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-all">
+
+      Cerrar
+
+    </button>
+
   </div>
+
 </div>
 
 <div *ngIf="showDeleteModal"
