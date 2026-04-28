@@ -47,7 +47,15 @@ export class JugadoresService {
       }),
     );
   }
-
+  cambiarEstado(id: string, estado: string): Observable<Jugador> {
+    // Usamos PATCH y la ruta específica que definimos en el backend
+    return this.http.patch<Jugador>(`${this.apiUrl}/${id}/estado`, { estado }).pipe(
+      tap((jugadorActualizado) => {
+        const actuales = this.jugadoresSubject.value;
+        this.jugadoresSubject.next(actuales.map((j) => (j.id === id ? jugadorActualizado : j)));
+      }),
+    );
+  }
   // Corregimos el tap del delete
   deleteJugador(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`).pipe(

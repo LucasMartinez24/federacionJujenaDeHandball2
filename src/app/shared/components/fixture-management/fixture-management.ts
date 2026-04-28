@@ -26,7 +26,7 @@ export class FixtureManagement implements OnInit {
   torneoId: string | null = null;
   torneoNombre: string = 'Cargando...';
   torneoCategoria: string = '';
-  torneoRama: string = ''; // 'Masculino' o 'Femenino'
+  torneoRama: string = '';
   mostrarTabla = false;
 
   jornadasIds: number[] = [];
@@ -50,23 +50,10 @@ export class FixtureManagement implements OnInit {
   arbitro2 = '';
   cronometrista = '';
   observaciones = '';
-  passwordAdmin = '';
-  private readonly PASS_ADMIN_SECRETA = 'Planilla_fede2026';
-  private readonly PASS_ADMIN_SECRETA_ALT = 'JugadoresFederacion_2026';
 
   jugadoresLocal: any[] = [];
   jugadoresVisitante: any[] = [];
   [key: string]: any;
-  private readonly CATEGORIAS_PERMITIDAS: { [key: string]: string[] } = {
-    'primera división': ['primera', 'juveniles'],
-    primera: ['primera', 'juveniles'],
-    '+35': ['primera', '+35 (veteranos)', 'ambas (primera y +35)'],
-    juveniles: ['juveniles', 'cadetes'],
-    cadetes: ['cadetes', 'menores'],
-    menores: ['menores', 'infantiles'],
-    infantiles: ['infantiles', 'pre-infantiles'],
-  };
-
   ngOnInit() {
     this.torneoId = this.route.snapshot.paramMap.get('id');
     this.esAdmin =
@@ -85,7 +72,6 @@ export class FixtureManagement implements OnInit {
     this.torneosService.getTorneoById(this.torneoId!).subscribe((t) => {
       this.torneoNombre = t.nombre;
       this.torneoCategoria = t.categoria;
-      // Forzamos limpieza de espacios y minúsculas para la rama del torneo
       this.torneoRama = t.rama ? t.rama.trim().toLowerCase() : '';
 
       this.partidosService.getJornadasDisponibles(this.torneoId!).subscribe((ids) => {
@@ -96,10 +82,8 @@ export class FixtureManagement implements OnInit {
     });
   }
 
-  // ... (cargarFixture, cargarTabla, cargarResultados, mapearJugador, eliminarInvitado se mantienen igual)
   cargarFixture(num: number) {
     this.jornadaSeleccionada = num;
-    this.partidos = [];
     this.partidosService.getPartidosByJornada(this.torneoId!, num).subscribe({
       next: (data) => {
         this.partidos = data;
@@ -134,6 +118,64 @@ export class FixtureManagement implements OnInit {
     this.cargarListaEquipo(partido.visitanteId, 'visitante', partido.eventos);
   }
 
+  private cargarListaEquipo(clubId: string, lado: 'local' | 'visitante', eventos: any[]) {
+    this.partidosService.getJugadoresPorClub(clubId).subscribe({
+      next: (res) => {
+        // Normalizamos datos del Torneo
+        const catTorneo = this.torneoCategoria?.toString().toLowerCase().trim() || '';
+        const ramaTorneo = this.torneoRama?.toString().toLowerCase().trim() || '';
+
+        const oficialesMapeados = res
+          .filter((j: any) => {
+            if (!j.categoria || !j.genero) return false;
+
+            // 1. Normalización para evitar errores de espacios o mayúsculas
+            const catBase = j.categoria.toString().toLowerCase().trim();
+            const catEspecial = j.categoriaEspecial
+              ? j.categoriaEspecial.toString().toLowerCase().trim()
+              : '';
+            const generoJugador = j.genero.toString().toLowerCase().trim();
+            const catTorneo = this.torneoCategoria?.toString().toLowerCase().trim() || '';
+            const ramaTorneo = this.torneoRama?.toString().toLowerCase().trim() || '';
+
+            // 2. Validación de Rama (Género)
+            const esGeneroCorrecto = !ramaTorneo || generoJugador.includes(ramaTorneo);
+            if (!esGeneroCorrecto) return false;
+
+            // --- LÓGICA DE EXCLUSIÓN SEGÚN EL TORNEO ---
+
+            // CASO A: SI EL TORNEO ES +35
+            if (catTorneo.includes('+35')) {
+              // Solo entran los que tengan la marca especial de veterano
+              return catEspecial.includes('+35');
+            }
+
+            // CASO B: SI EL TORNEO ES PRIMERA DIVISIÓN
+            if (catTorneo.includes('primera')) {
+              // 1. Debe decir 'primera' o 'juvenil' en la base
+              const esDePrimeraOJuvenil =
+                catBase.includes('primera') || catBase.includes('juvenil');
+
+              // 2. LA REGLA DE ORO: Si el jugador tiene +35 en la categoría especial,
+              // lo expulsamos de la lista de Primera para que no se mezcle.
+              const esVeterano = catEspecial.includes('+35');
+
+              return esDePrimeraOJuvenil && !esVeterano;
+            }
+
+            // CASO C: RESTO DE CATEGORÍAS (Menores, Cadetes, etc.)
+            return catBase.includes(catTorneo);
+          })
+          .map((j: any) => this.mapearJugador(j, eventos));
+        if (lado === 'local') this.jugadoresLocal = oficialesMapeados;
+        else this.jugadoresVisitante = oficialesMapeados;
+
+        this.cdr.detectChanges();
+      },
+      error: () => toast.error(`Error al cargar equipo ${lado}`),
+    });
+  }
+
   private mapearJugador(j: any, eventos: any[]) {
     const ev = eventos || [];
     return {
@@ -148,121 +190,15 @@ export class FixtureManagement implements OnInit {
     };
   }
 
-  private cargarListaEquipo(clubId: string, lado: 'local' | 'visitante', eventos: any[]) {
-    this.partidosService.getJugadoresPorClub(clubId).subscribe({
-      next: (res) => {
-        // 1. Normalización de Criterios del Torneo
-        const catTorneo = this.torneoCategoria?.trim().toLowerCase() || '';
-        const ramaTorneo = this.torneoRama?.trim().toLowerCase() || '';
-
-        // 2. Mapa de categorías permitidas (Valores exactos de tu base de datos)
-        const mapaPermitidas: { [key: string]: string[] } = {
-          'primera división': ['primera', 'juveniles'],
-          primera: ['primera', 'juveniles'],
-          '+35': ['primera', '+35 (veteranos)', 'ambas (primera y +35)'],
-          juveniles: ['juveniles', 'cadetes'],
-          cadetes: ['cadetes', 'menores'],
-          menores: ['menores', 'infantiles'],
-          infantiles: ['infantiles', 'pre-infantiles'],
-        };
-
-        const aptas = mapaPermitidas[catTorneo] || [catTorneo];
-
-        console.log(
-          `%c INICIANDO FILTRADO PARA EQUIPO ${lado.toUpperCase()} `,
-          'background: #222; color: #bada55',
-        );
-        console.log(`- Torneo Categoria: "${catTorneo}" | Rama: "${ramaTorneo}"`);
-
-        // 3. Filtrar Jugadores Oficiales
-        const oficialesMapeados = res
-          .filter((j: any) => {
-            // VALIDACIÓN DE DATOS (Si esto falla, el Backend no está enviando categoria/genero)
-            if (!j.categoria || !j.genero) {
-              console.error(
-                `X Jugador ${j.nombreCompleto} RECHAZADO: Faltan datos en el objeto JSON (¿Categoria/Genero?)`,
-                j,
-              );
-              return false;
-            }
-
-            const catJugador = j.categoria.trim().toLowerCase();
-            const generoJugador = j.genero.trim().toLowerCase();
-
-            // Lógica de Rama (Género): Si ramaTorneo existe, debe coincidir.
-            const esGeneroCorrecto =
-              !ramaTorneo ||
-              generoJugador.includes(ramaTorneo) ||
-              ramaTorneo.includes(generoJugador);
-
-            // Lógica de Categoría: Debe estar en el mapa de permitidas.
-            const esCategoriaApta = aptas.includes(catJugador);
-
-            if (esGeneroCorrecto && esCategoriaApta) {
-              console.log(
-                `%c✔ ACEPTE: ${j.nombreCompleto} (${catJugador} - ${generoJugador})`,
-                'color: #4CAF50',
-              );
-              return true;
-            } else {
-              return false;
-            }
-          })
-          .map((j: any) => this.mapearJugador(j, eventos));
-
-        // 4. Mapear Invitados Manuales (Estos siempre se muestran si ya existen en eventos)
-        const eventosInvitados = eventos.filter((e) => e.equipoId === clubId && !e.jugadorId);
-        const nombresUnicos = [...new Set(eventosInvitados.map((e) => e.nombreInvitado))];
-
-        const invitadosMapeados = nombresUnicos.map((nombre) => {
-          const primerEvento = eventosInvitados.find((e) => e.nombreInvitado === nombre);
-          return {
-            id: null,
-            nombreCompleto: nombre,
-            numero: primerEvento?.numeroInvitado || 0,
-            goles: eventosInvitados.filter((e) => e.nombreInvitado === nombre && e.tipo === 'GOL')
-              .length,
-            am: eventosInvitados.filter((e) => e.nombreInvitado === nombre && e.tipo === 'AMARILLA')
-              .length,
-            excl: eventosInvitados.filter(
-              (e) => e.nombreInvitado === nombre && e.tipo === 'DOS_MINUTOS',
-            ).length,
-            roja: eventosInvitados.some((e) => e.nombreInvitado === nombre && e.tipo === 'ROJA'),
-            azul: eventosInvitados.some((e) => e.nombreInvitado === nombre && e.tipo === 'AZUL'),
-          };
-        });
-
-        // 5. Unir y Asignar
-        const listaCompleta = [...oficialesMapeados, ...invitadosMapeados];
-
-        if (lado === 'local') this.jugadoresLocal = listaCompleta;
-        else this.jugadoresVisitante = listaCompleta;
-
-        console.log(
-          `%c FIN FILTRADO ${lado.toUpperCase()} - Total en lista: ${listaCompleta.length} `,
-          'background: #222; color: #bada55',
-        );
-        this.cdr.detectChanges();
-      },
-      error: () => toast.error(`Error al cargar equipo ${lado}`),
-    });
-  }
-
-  // ... (confirmarResultado, limpiarDatosModal, abrirModalInvitado, confirmarInvitado, trackByPartidoId)
   confirmarResultado(): void {
-    if (
-      this.passwordAdmin !== this.PASS_ADMIN_SECRETA &&
-      this.passwordAdmin !== this.PASS_ADMIN_SECRETA_ALT
-    ) {
-      toast.error('PIN incorrecto');
-      return;
-    }
     const sumaGLocal = this.jugadoresLocal.reduce((acc, j) => acc + (j.goles || 0), 0);
     const sumaGVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + (j.goles || 0), 0);
-    if (sumaGLocal !== this.gLocal || sumaGVisitante !== this.gVisitante) {
+
+    if (sumaGLocal !== Number(this.gLocal) || sumaGVisitante !== Number(this.gVisitante)) {
       toast.error('La suma de goles individuales no coincide con el marcador global');
       return;
     }
+
     const planillaFinal = [
       ...this.jugadoresLocal.map((j) => ({
         ...j,
@@ -275,6 +211,7 @@ export class FixtureManagement implements OnInit {
         jugadorId: j.id,
       })),
     ].filter((j) => j.goles > 0 || j.am > 0 || j.excl > 0 || j.roja || j.azul || j.id === null);
+
     const payload = {
       golesLocal: Number(this.gLocal),
       golesVisitante: Number(this.gVisitante),
@@ -286,6 +223,7 @@ export class FixtureManagement implements OnInit {
       observaciones: this.observaciones,
       detallesJugadores: planillaFinal,
     };
+
     this.partidosService.updateResultado(this.partidoSeleccionado.id, payload).subscribe({
       next: () => {
         this.showScoreModal = false;
@@ -306,7 +244,6 @@ export class FixtureManagement implements OnInit {
     this.arbitro2 = '';
     this.cronometrista = '';
     this.observaciones = '';
-    this.passwordAdmin = '';
     this.jugadoresLocal = [];
     this.jugadoresVisitante = [];
   }

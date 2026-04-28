@@ -305,9 +305,7 @@
 
         <div class="flex gap-4 w-full lg:w-[450px]">
           <ng-container *ngIf="!modoLectura; else cerradoTemplate">
-            <input type="password" [(ngModel)]="passwordAdmin" placeholder="PIN PIN"
-              class="flex-1 bg-white/10 border-2 border-primary/20 rounded-2xl py-4 text-center text-white font-black text-sm tracking-[0.3em] outline-none">
-            <button (click)="confirmarResultado()" [disabled]="!passwordAdmin"
+            <button (click)="confirmarResultado()"
               class="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] md:text-xs shadow-2xl active:scale-95 transition-all cursor-pointer">
               OFICIALIZAR
             </button>

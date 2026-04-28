@@ -122,17 +122,16 @@ export class ClubList implements OnInit {
 
   // --- GESTIÓN DE JUGADORES ---
   cambiarEstado(jugador: Jugador, nuevoEstado: string): void {
-    const data: Partial<Jugador> = { estado: nuevoEstado };
-    this.jugadoresService.updateJugador(jugador.id, data).subscribe({
+    this.jugadoresService.cambiarEstado(jugador.id, nuevoEstado).subscribe({
       next: (jugadorActualizado) => {
+        // Actualizamos la referencia local para que el HTML reaccione
         jugador.estado = jugadorActualizado.estado;
-        const msg = nuevoEstado === 'Aprobado' ? 'Jugador Habilitado' : 'Ficha Rechazada';
-        toast.success(msg);
+        toast.success(nuevoEstado === 'Aprobado' ? 'Habilitado' : 'Rechazado');
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error al actualizar:', err);
-        toast.error('Error al conectar con el servidor');
+        console.error('Error al cambiar estado:', err);
+        toast.error('No se pudo actualizar en el servidor');
       },
     });
   }
