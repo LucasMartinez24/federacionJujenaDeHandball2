@@ -201,10 +201,16 @@ export class FixtureGenerator implements OnInit {
   }
 
   confirmarProgramacion() {
+    // Guardamos los valores temporales en el objeto del partido
     this.partidoAProgramar.fecha = this.fechaTemp;
     this.partidoAProgramar.hora = this.horaTemp;
     this.partidoAProgramar.lugar = this.lugarTemp;
+
+    // Cerramos el modal
     this.showProgramadorModal = false;
+
+    // Opcional: Notificación visual
+    toast.info('Horario asignado temporalmente');
   }
 
   prepararBorrado(jornada: any, index: number) {
