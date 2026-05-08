@@ -175,7 +175,7 @@
 <div *ngIf="showScoreModal"
   class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-slate-950/95 backdrop-blur-md">
   <div
-    class="bg-slate-900 border border-white/10 rounded-[2rem] md:rounded-[3rem] w-full max-w-6xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+    class="bg-slate-900 border border-white/10 rounded-[2rem] md:rounded-[3rem] w-full max-w-7xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
 
     <header class="p-5 md:p-8 border-b border-white/10 bg-slate-900/50 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-4 md:gap-6 min-w-0">
@@ -224,7 +224,7 @@
             </div>
 
             <div
-              class="grid grid-cols-[40px_1fr_45px_35px_35px_35px_35px_30px] md:grid-cols-[50px_1fr_60px_45px_45px_45px_45px_40px] gap-1 md:gap-2 px-2 mb-3 text-[8px] md:text-[10px] font-black text-slate-500 uppercase">
+              class="grid grid-cols-[40px_1fr_45px_35px_35px_35px_35px_30px] md:grid-cols-[50px_minmax(180px,2fr)_60px_45px_45px_45px_45px_40px] gap-1 md:gap-2 px-2 mb-3 text-[8px] md:text-[10px] font-black text-slate-500 uppercase">
               <span class="text-center">Nº</span><span>JUGADOR</span><span class="text-center">G</span>
               <span class="text-center">A</span><span class="text-center">2'</span><span class="text-center">R</span>
               <span class="text-center">AZ</span><span class="text-center"></span>
@@ -232,14 +232,14 @@
 
             <div class="space-y-2">
               <div *ngFor="let j of (equipo === 'local' ? jugadoresLocal : jugadoresVisitante); let idx = index"
-                class="grid grid-cols-[40px_1fr_45px_35px_35px_35px_35px_30px] md:grid-cols-[50px_1fr_60px_45px_45px_45px_45px_40px] gap-1 md:gap-2 items-center bg-white/5 p-1.5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                class="grid grid-cols-[40px_1fr_45px_35px_35px_35px_35px_30px] md:grid-cols-[50px_minmax(180px,2fr)_60px_45px_45px_45px_45px_40px] gap-1 md:gap-2 items-center bg-white/5 p-1.5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
 
                 <input type="number" [(ngModel)]="j.numero" [readonly]="modoLectura"
                   class="bg-slate-950 border-none rounded-lg text-center text-[10px] md:text-xs font-black text-primary py-2 outline-none">
 
                 <div class="flex flex-col min-w-0 pl-1 md:pl-2">
                   <span
-                    class="text-[10px] md:text-xs font-bold text-slate-200 truncate uppercase">{{j.nombreCompleto}}</span>
+                    class="text-[10px] md:text-xs font-bold text-slate-200 uppercase leading-tight">{{j.nombreCompleto}}</span>
                   <span *ngIf="!j.id" class="text-[7px] text-amber-500 font-black uppercase tracking-tighter">Invitado
                     en Acta</span>
                 </div>
