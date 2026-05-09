@@ -168,6 +168,7 @@ export class FixtureGenerator implements OnInit {
 
   // --- PERSISTENCIA ---
   publicarFixture() {
+    // Creamos el array directamente para que sea de tipo any[]
     const payload = this.jornadas.map((j) => ({
       numero: j.numero,
       partidos: j.partidos.map((p: any) => ({
@@ -182,12 +183,16 @@ export class FixtureGenerator implements OnInit {
       })),
     }));
 
+    // Ahora 'payload' es un Array, lo que elimina el error de TypeScript
     this.partidosService.saveFixture(this.torneoId!, payload).subscribe({
       next: () => {
         toast.success('Fixture publicado exitosamente');
         this.router.navigate(['/torneos']);
       },
-      error: (err) => toast.error('Error al publicar fixture'),
+      error: (err) => {
+        console.error(err);
+        toast.error('Error al publicar fixture');
+      },
     });
   }
 
