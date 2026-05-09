@@ -20,7 +20,7 @@ export class FixtureManagement implements OnInit {
   private torneosService = inject(TorneosService);
   public authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
-
+  [key: string]: any;
   public readonly apiUrl = environment.apiUrl;
   public esAdmin: boolean = false;
   torneoId: string | null = null;
@@ -37,7 +37,6 @@ export class FixtureManagement implements OnInit {
   showScoreModal = false;
   modoLectura = false;
   partidoSeleccionado: any = null;
-
   showInvitadoModal = false;
   equipoInvitado: 'local' | 'visitante' = 'local';
   nuevoInvitado = { nombre: '', numero: '' };
@@ -50,10 +49,9 @@ export class FixtureManagement implements OnInit {
   arbitro2 = '';
   cronometrista = '';
   observaciones = '';
-
   jugadoresLocal: any[] = [];
   jugadoresVisitante: any[] = [];
-  [key: string]: any;
+
   ngOnInit() {
     this.torneoId = this.route.snapshot.paramMap.get('id');
     this.esAdmin =
@@ -61,7 +59,6 @@ export class FixtureManagement implements OnInit {
       this.authService.isOficialMesa() ||
       this.authService.isJefeArbitros() ||
       this.authService.isRepFederacion();
-
     if (this.torneoId) {
       this.cargarDatosIniciales();
       this.cargarTabla();
@@ -73,7 +70,6 @@ export class FixtureManagement implements OnInit {
       this.torneoNombre = t.nombre;
       this.torneoCategoria = t.categoria;
       this.torneoRama = t.rama ? t.rama.trim().toLowerCase() : '';
-
       this.partidosService.getJornadasDisponibles(this.torneoId!).subscribe((ids) => {
         this.jornadasIds = ids;
         if (this.jornadasIds.length > 0) this.cargarFixture(this.jornadasIds[0]);
@@ -84,11 +80,9 @@ export class FixtureManagement implements OnInit {
 
   cargarFixture(num: number) {
     this.jornadaSeleccionada = num;
-    this.partidosService.getPartidosByJornada(this.torneoId!, num).subscribe({
-      next: (data) => {
-        this.partidos = data;
-        this.cdr.detectChanges();
-      },
+    this.partidosService.getPartidosByJornada(this.torneoId!, num).subscribe((data) => {
+      this.partidos = data;
+      this.cdr.detectChanges();
     });
   }
 
@@ -121,67 +115,71 @@ export class FixtureManagement implements OnInit {
   private cargarListaEquipo(clubId: string, lado: 'local' | 'visitante', eventos: any[]) {
     this.partidosService.getJugadoresPorClub(clubId).subscribe({
       next: (res) => {
-        // Normalizamos datos del Torneo
-        const catTorneo = this.torneoCategoria?.toString().toLowerCase().trim() || '';
-        const ramaTorneo = this.torneoRama?.toString().toLowerCase().trim() || '';
+        const catTorneo = this.torneoCategoria?.toLowerCase().trim() || '';
+        const ramaTorneo = this.torneoRama?.toLowerCase().trim() || '';
 
         const oficialesMapeados = res
           .filter((j: any) => {
-            if (!j.categoria || !j.genero) return false;
+            const catBase = j.categoria?.toLowerCase().trim() || '';
+            const catEspecial = j.categoriaEspecial?.toLowerCase().trim() || '';
+            const generoJugador = j.genero?.toLowerCase().trim() || '';
 
-            // 1. Normalización para evitar errores de espacios o mayúsculas
-            const catBase = j.categoria.toString().toLowerCase().trim();
-            const catEspecial = j.categoriaEspecial
-              ? j.categoriaEspecial.toString().toLowerCase().trim()
-              : '';
-            const generoJugador = j.genero.toString().toLowerCase().trim();
-            const catTorneo = this.torneoCategoria?.toString().toLowerCase().trim() || '';
-            const ramaTorneo = this.torneoRama?.toString().toLowerCase().trim() || '';
-
-            // 2. Validación de Rama (Género)
             const esGeneroCorrecto = !ramaTorneo || generoJugador.includes(ramaTorneo);
             if (!esGeneroCorrecto) return false;
 
-            // --- LÓGICA DE EXCLUSIÓN SEGÚN EL TORNEO ---
-
-            // CASO A: SI EL TORNEO ES +35
             if (catTorneo.includes('+35')) {
-              // Solo entran los que tengan la marca especial de veterano
               return catEspecial.includes('+35');
             }
-
-            // CASO B: SI EL TORNEO ES PRIMERA DIVISIÓN
             if (catTorneo.includes('primera')) {
-              // 1. Debe decir 'primera' o 'juvenil' en la base
               const esDePrimeraOJuvenil =
                 catBase.includes('primera') || catBase.includes('juvenil');
-
-              // 2. LA REGLA DE ORO: Si el jugador tiene +35 en la categoría especial,
-              // lo expulsamos de la lista de Primera para que no se mezcle.
               const esVeterano = catEspecial.includes('+35');
-
               return esDePrimeraOJuvenil && !esVeterano;
             }
-
-            // CASO C: RESTO DE CATEGORÍAS (Menores, Cadetes, etc.)
             return catBase.includes(catTorneo);
           })
           .map((j: any) => this.mapearJugador(j, eventos));
-        if (lado === 'local') this.jugadoresLocal = oficialesMapeados;
-        else this.jugadoresVisitante = oficialesMapeados;
 
+        const invitadosMapeados = (eventos || [])
+          .filter((e) => e.equipoId === clubId && !e.jugadorId && e.tipo === 'PRESENCIA')
+          .map((e) => ({
+            id: null,
+            nombreCompleto: e.nombreInvitado,
+            numero: e.numeroInvitado,
+            goles: eventos.filter(
+              (ev) => ev.nombreInvitado === e.nombreInvitado && ev.tipo === 'GOL',
+            ).length,
+            am: eventos.filter(
+              (ev) => ev.nombreInvitado === e.nombreInvitado && ev.tipo === 'AMARILLA',
+            ).length,
+            excl: eventos.filter(
+              (ev) => ev.nombreInvitado === e.nombreInvitado && ev.tipo === 'DOS_MINUTOS',
+            ).length,
+            roja: eventos.some(
+              (ev) => ev.nombreInvitado === e.nombreInvitado && ev.tipo === 'ROJA',
+            ),
+            azul: eventos.some(
+              (ev) => ev.nombreInvitado === e.nombreInvitado && ev.tipo === 'AZUL',
+            ),
+          }));
+
+        const listaFinal = [...oficialesMapeados, ...invitadosMapeados];
+        if (lado === 'local') this.jugadoresLocal = listaFinal;
+        else this.jugadoresVisitante = listaFinal;
         this.cdr.detectChanges();
       },
-      error: () => toast.error(`Error al cargar equipo ${lado}`),
     });
   }
 
   private mapearJugador(j: any, eventos: any[]) {
     const ev = eventos || [];
+    const dorsalActa = ev.find(
+      (e) => e.jugadorId === j.id && e.tipo === 'PRESENCIA',
+    )?.numeroInvitado;
     return {
       id: j.id,
       nombreCompleto: j.nombreCompleto,
-      numero: j.numero || 0,
+      numero: dorsalActa || 0,
       goles: ev.filter((e) => e.jugadorId === j.id && e.tipo === 'GOL').length,
       am: ev.filter((e) => e.jugadorId === j.id && e.tipo === 'AMARILLA').length,
       excl: ev.filter((e) => e.jugadorId === j.id && e.tipo === 'DOS_MINUTOS').length,
@@ -195,7 +193,7 @@ export class FixtureManagement implements OnInit {
     const sumaGVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + (j.goles || 0), 0);
 
     if (sumaGLocal !== Number(this.gLocal) || sumaGVisitante !== Number(this.gVisitante)) {
-      toast.error('La suma de goles individuales no coincide con el marcador global');
+      toast.error('La suma de goles individuales no coincide');
       return;
     }
 
@@ -204,35 +202,36 @@ export class FixtureManagement implements OnInit {
         ...j,
         equipoId: this.partidoSeleccionado.localId,
         jugadorId: j.id,
+        nombreCompleto: j.nombreCompleto,
       })),
       ...this.jugadoresVisitante.map((j) => ({
         ...j,
         equipoId: this.partidoSeleccionado.visitanteId,
         jugadorId: j.id,
+        nombreCompleto: j.nombreCompleto,
       })),
-    ].filter((j) => j.goles > 0 || j.am > 0 || j.excl > 0 || j.roja || j.azul || j.id === null);
+    ].filter((j) => j.numero > 0 || j.id === null);
 
-    const payload = {
-      golesLocal: Number(this.gLocal),
-      golesVisitante: Number(this.gVisitante),
-      golesLocalHT: Number(this.htLocal),
-      golesVisitanteHT: Number(this.htVisitante),
-      arbitro1: this.arbitro1,
-      arbitro2: this.arbitro2,
-      cronometrista: this.cronometrista,
-      observaciones: this.observaciones,
-      detallesJugadores: planillaFinal,
-    };
-
-    this.partidosService.updateResultado(this.partidoSeleccionado.id, payload).subscribe({
-      next: () => {
-        this.showScoreModal = false;
-        this.cargarFixture(this.jornadaSeleccionada);
-        this.cargarTabla();
-        toast.success('Acta oficializada');
-      },
-      error: (err) => toast.error('Error al guardar: ' + err.error?.error),
-    });
+    this.partidosService
+      .updateResultado(this.partidoSeleccionado.id, {
+        golesLocal: this.gLocal,
+        golesVisitante: this.gVisitante,
+        golesLocalHT: this.htLocal,
+        golesVisitanteHT: this.htVisitante,
+        arbitro1: this.arbitro1,
+        arbitro2: this.arbitro2,
+        cronometrista: this.cronometrista,
+        observaciones: this.observaciones,
+        detallesJugadores: planillaFinal,
+      })
+      .subscribe({
+        next: () => {
+          this.showScoreModal = false;
+          this.cargarFixture(this.jornadaSeleccionada);
+          this.cargarTabla();
+          toast.success('Acta oficializada');
+        },
+      });
   }
 
   limpiarDatosModal() {
@@ -258,7 +257,7 @@ export class FixtureManagement implements OnInit {
     const inv = {
       id: null,
       nombreCompleto: this.nuevoInvitado.nombre.toUpperCase(),
-      numero: this.nuevoInvitado.numero,
+      numero: Number(this.nuevoInvitado.numero),
       goles: 0,
       am: 0,
       excl: 0,
@@ -273,11 +272,10 @@ export class FixtureManagement implements OnInit {
   eliminarInvitado(lista: any[], index: number) {
     if (this.modoLectura) return;
     lista.splice(index, 1);
-    toast.info('Invitado removido');
     this.cdr.detectChanges();
   }
 
-  trackByPartidoId(index: number, partido: any): string {
+  trackByPartidoId(index: number, partido: any) {
     return partido.id;
   }
 }
