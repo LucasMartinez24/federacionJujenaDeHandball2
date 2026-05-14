@@ -1,0 +1,84 @@
+<div class="min-h-screen bg-slate-950 py-10 px-4">
+  <div class="max-w-7xl mx-auto space-y-12">
+
+    <nav class="flex justify-between items-center mb-8">
+      <button *ngIf="!userRole" routerLink="/Principal"
+        class="group flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer">
+        <span
+          class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors text-sm">arrow_back</span>
+        <span class="text-[9px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white">Volver al
+          Inicio</span>
+      </button>
+
+      <button *ngIf="!userRole" routerLink="/login"
+        class="group flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer text-slate-300">
+        <span class="text-[9px] font-black uppercase tracking-widest">Ingreso Delegados</span>
+        <span class="material-symbols-outlined text-xs text-slate-500 group-hover:text-primary">login</span>
+      </button>
+    </nav>
+
+    <div class="text-center space-y-4">
+      <h2 class="text-4xl md:text-6xl font-black uppercase text-white tracking-tighter">
+        Galería de <span class="text-primary italic">Momentos</span>
+      </h2>
+      <p class="text-slate-500 font-bold uppercase tracking-[0.3em] text-xs">
+        FJH • La historia del handball jujeño en imágenes
+      </p>
+      <div class="h-1.5 w-24 bg-primary mx-auto rounded-full"></div>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-3">
+      <button *ngFor="let cat of categorias" (click)="filtrar(cat)" [class]="categoriaActual === cat
+          ? 'bg-primary text-white border-primary'
+          : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20'"
+        class="cursor-pointer px-6 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95">
+        {{ cat }}
+      </button>
+    </div>
+
+    <div class="min-h-screen bg-slate-950 px-4">
+      <div class="max-w-[1400px] mx-auto space-y-12">
+        <nav class="flex justify-between items-center mb-8">
+        </nav>
+
+        <div class="text-center space-y-4 mb-16">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+
+          <div *ngFor="let foto of fotosFiltradas"
+            class="group relative aspect-instagram overflow-hidden rounded-[3rem] border border-white/5 bg-slate-900 shadow-2xl animate-in fade-in zoom-in duration-500">
+
+            <img [src]="baseUrl + foto.url" [alt]="foto.titulo"
+              class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+
+            <button *ngIf="userRole === 'CM'" (click)="eliminarFoto(foto.id)"
+              class="absolute top-8 right-8 size-12 bg-red-600/90 text-white rounded-full flex items-center justify-center shadow-2xl hover:bg-red-700 hover:scale-110 transition-all cursor-pointer z-40 border border-white/10">
+              <span class="material-symbols-outlined text-xl font-bold">delete</span>
+            </button>
+
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-10 flex flex-col justify-end pointer-events-none">
+              <span class="text-primary font-black uppercase text-xs tracking-[0.3em] mb-3">
+                {{ foto.categoria }}
+              </span>
+              <h3 class="text-white font-black text-2xl leading-tight uppercase tracking-tighter">
+                {{ foto.titulo }}
+              </h3>
+              <p class="text-slate-400 text-xs font-bold mt-2">
+                {{ foto.createdAt | date:'dd MMMM, yyyy' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div *ngIf="fotosFiltradas.length === 0" class="py-40 text-center">
+      <span class="material-symbols-outlined text-6xl text-slate-800 mb-4">image_not_supported</span>
+      <p class="text-slate-600 font-black uppercase text-xs tracking-widest">No hay fotos cargadas</p>
+    </div>
+
+  </div>
+</div>

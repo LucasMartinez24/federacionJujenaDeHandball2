@@ -122,7 +122,29 @@ export const routes: Routes = [
     data: { roles: ['user', 'admin'] },
     title: 'Mi Agenda',
   },
-
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' },
+  {
+    path: 'Principal',
+    loadComponent: () => import('./shared/components/principal/principal').then((m) => m.Principal),
+    title: 'Principal - FJH',
+  },
+  {
+    path: 'formGaleria',
+    loadComponent: () =>
+      import('./shared/components/admin-galeria-component/admin-galeria-component').then(
+        (m) => m.AdminGaleriaComponent,
+      ),
+    canActivate: [roleGuard],
+    data: { roles: ['CM'] },
+    title: 'Formulario Galería - FJH',
+  },
+  {
+    path: 'galeria',
+    loadComponent: () =>
+      import('./shared/components/galeria-component/galeria-component').then(
+        (m) => m.GaleriaComponent,
+      ),
+    title: 'Galería - FJH',
+  },
+  { path: '', redirectTo: 'Principal', pathMatch: 'full' },
+  { path: '**', redirectTo: 'Principal' },
 ];

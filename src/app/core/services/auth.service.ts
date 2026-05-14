@@ -4,7 +4,13 @@ import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 // Definición de roles basada en la nueva estructura de la Federación
-export type UserRole = 'admin' | 'REP_FEDERACION' | 'OFICIAL_MESA' | 'JEFE_ARBITROS' | 'user';
+export type UserRole =
+  | 'admin'
+  | 'REP_FEDERACION'
+  | 'OFICIAL_MESA'
+  | 'JEFE_ARBITROS'
+  | 'CM'
+  | 'user';
 
 export interface User {
   id: string;
@@ -80,7 +86,9 @@ export class AuthService {
   isRepFederacion(): boolean {
     return this.getCurrentUser()?.role === 'REP_FEDERACION';
   }
-
+  isCM(): boolean {
+    return this.getCurrentUser()?.role === 'CM';
+  }
   /**
    * Oficial de Mesa: Encargado de subir Match Reports y resultados
    */

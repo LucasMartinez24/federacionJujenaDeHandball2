@@ -16,6 +16,7 @@
   --radius-default: 0.25rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+  --aspect-instagram: 1080 / 1350;
 }
 
 .material-symbols-outlined {
@@ -46,4 +47,10 @@ select option {
 /* Quitar el borde azul por defecto en algunos navegadores */
 select:focus {
   outline: none;
+}
+
+@media (min-width: 1280px) {
+  .aspect-instagram {
+    min-width: 400px;
+  }
 }

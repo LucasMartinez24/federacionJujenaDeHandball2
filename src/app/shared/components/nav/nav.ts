@@ -35,6 +35,7 @@ export class Nav {
       REP_FEDERACION: 'Rep. Federación',
       OFICIAL_MESA: 'Oficial de Mesa',
       JEFE_ARBITROS: 'Jefe de Árbitros',
+      CM: 'Community Manager',
       user: 'Club',
     };
 

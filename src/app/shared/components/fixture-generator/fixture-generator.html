@@ -127,7 +127,7 @@
                 class="w-full py-2 bg-slate-800/50 rounded-xl text-[10px] font-black text-slate-400 hover:text-primary transition-all flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-sm">{{ partido.fecha ? 'calendar_month' : 'schedule'
                   }}</span>
-                {{ partido.fecha ? (partido.fecha | date:'dd/MM HH:mm') : 'PROGRAMAR' }}
+                {{ partido.fecha ? ( partido.fecha | date:'HH:mm':'UTC' ) : 'PROGRAMAR' }}
               </button>
             </div>
           </div>

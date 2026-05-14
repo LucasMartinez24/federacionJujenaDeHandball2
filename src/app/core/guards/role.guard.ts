@@ -24,7 +24,8 @@ export const roleGuard: CanActivateFn = (route) => {
   // 3. Si no tiene permiso, redirigir según quién sea para que no se quede trabado
   if (user?.role === 'user') router.navigate(['/dashboard']);
   else if (user?.role === 'REP_FEDERACION') router.navigate(['/clubes']);
-  else router.navigate(['/torneos']);
+  else if (user?.role === 'OFICIAL_MESA') router.navigate(['/torneos']);
+  else router.navigate(['/formGaleria']); // PARA CM
 
   return false;
 };
