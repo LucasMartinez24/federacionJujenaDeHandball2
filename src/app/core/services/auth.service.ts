@@ -55,6 +55,8 @@ export class AuthService {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
+    localStorage.clear(); // Borra todo: token, role, etc.
+    window.location.href = '/'; // Recarga física a la principal
   }
 
   // --- MÉTODOS DE AUTENTICACIÓN ---

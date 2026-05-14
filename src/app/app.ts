@@ -14,8 +14,15 @@ import { AuthService } from './core/services/auth.service';
 export class App {
   showNav = true;
   private authService = inject(AuthService);
+  isFirstLoad = !sessionStorage.getItem('loaded');
 
   constructor(private router: Router) {
+    if (this.isFirstLoad) {
+      sessionStorage.setItem('loaded', 'true');
+      // Esto asegura que la primera vez que abren la pestaña vayan al inicio
+      this.router.navigate(['/']);
+    }
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         const isGaleria = event.urlAfterRedirects === '/galeria' || event.url === '/galeria';
