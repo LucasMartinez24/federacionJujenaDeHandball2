@@ -23,7 +23,9 @@ export class App {
           event.urlAfterRedirects === '/login' ||
           event.url === '/login' ||
           event.urlAfterRedirects === '/Principal' ||
-          event.url === '/Principal';
+          event.url === '/Principal' ||
+          event.urlAfterRedirects === '/' ||
+          event.url === '/';
 
         if (isLoginOrPrincipal) {
           this.showNav = false;
