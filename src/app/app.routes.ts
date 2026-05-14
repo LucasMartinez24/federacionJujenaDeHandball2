@@ -4,6 +4,14 @@ import { ClubList } from './shared/components/club-list/club-list';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
+  // --- RUTA RAÍZ (Landing Page) ---
+  // Esta debe ir al principio para que sea lo primero que el VPS cargue
+  {
+    path: '',
+    loadComponent: () => import('./shared/components/principal/principal').then((m) => m.Principal),
+    title: 'FJH - Federación Jujeña de Handball',
+  },
+
   { path: 'login', component: LoginComponent, title: 'FJH - Login' },
 
   // --- DASHBOARD PRINCIPAL (Solo para Clubes) ---
@@ -29,7 +37,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./shared/components/club-create/club-create').then((m) => m.ClubCreate),
     canActivate: [roleGuard],
-    data: { roles: ['admin'] }, // Solo Admin crea la institución
+    data: { roles: ['admin'] },
     title: 'Nuevo Club',
   },
 
@@ -54,12 +62,12 @@ export const routes: Routes = [
     data: { roles: ['admin', 'user'] },
   },
 
-  // --- TORNEOS Y FIXTURE (Admin, Planillero, Árbitro y Club) ---
+  // --- TORNEOS Y FIXTURE ---
   {
     path: 'torneos',
     loadComponent: () => import('./shared/components/torneos/torneos').then((m) => m.Torneos),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // 'user' añadido para que el club vea torneos
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] },
     title: 'Torneos Oficiales',
   },
   {
@@ -77,7 +85,7 @@ export const routes: Routes = [
         (m) => m.FixtureGenerator,
       ),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA'] }, // Planillero puede generar fixture
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA'] },
     title: 'Generador Fixture',
   },
   {
@@ -87,7 +95,7 @@ export const routes: Routes = [
         (m) => m.FixtureManagement,
       ),
     canActivate: [roleGuard],
-    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] }, // Todos ven el acta, pero el componente filtrará botones por rol
+    data: { roles: ['admin', 'REP_FEDERACION', 'OFICIAL_MESA', 'JEFE_ARBITROS', 'user'] },
     title: 'Acta de Partido',
   },
 
@@ -99,7 +107,7 @@ export const routes: Routes = [
         (m) => m.SupportAdminComponent,
       ),
     canActivate: [roleGuard],
-    data: { roles: ['admin'] }, // El rep. también puede atender soporte
+    data: { roles: ['admin'] },
     title: 'Tickets Federación',
   },
   {
@@ -113,7 +121,7 @@ export const routes: Routes = [
     title: 'Soporte Club',
   },
 
-  // --- CALENDARIO (Solo Clubes) ---
+  // --- CALENDARIO ---
   {
     path: 'calendarioCompleto',
     loadComponent: () =>
@@ -122,20 +130,12 @@ export const routes: Routes = [
     data: { roles: ['user', 'admin'] },
     title: 'Mi Agenda',
   },
+
+  // --- GALERÍA Y GESTIÓN CM ---
   {
-    path: 'Principal',
+    path: 'Principal', // Mantenemos el alias por si hay links existentes
     loadComponent: () => import('./shared/components/principal/principal').then((m) => m.Principal),
     title: 'Principal - FJH',
-  },
-  {
-    path: 'formGaleria',
-    loadComponent: () =>
-      import('./shared/components/admin-galeria-component/admin-galeria-component').then(
-        (m) => m.AdminGaleriaComponent,
-      ),
-    canActivate: [roleGuard],
-    data: { roles: ['CM'] },
-    title: 'Formulario Galería - FJH',
   },
   {
     path: 'galeria',
@@ -145,6 +145,17 @@ export const routes: Routes = [
       ),
     title: 'Galería - FJH',
   },
-  { path: '', redirectTo: 'Principal', pathMatch: 'full' },
-  { path: '**', redirectTo: 'Principal' },
+  {
+    path: 'formGaleria',
+    loadComponent: () =>
+      import('./shared/components/admin-galeria-component/admin-galeria-component').then(
+        (m) => m.AdminGaleriaComponent,
+      ),
+    canActivate: [roleGuard],
+    data: { roles: ['CM', 'admin'] }, // Admin también suele necesitar acceso aquí
+    title: 'Formulario Galería - FJH',
+  },
+
+  // --- REDIRECCIONES FINALES ---
+  { path: '**', redirectTo: '' }, // Cualquier ruta desconocida vuelve a la raíz (Landing)
 ];
