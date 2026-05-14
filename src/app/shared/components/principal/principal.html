@@ -35,7 +35,7 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-20 space-y-32">
-    <section class="space-y-16">
+    <section class="space-y-12">
       <div class="flex flex-col items-center text-center">
         <h2 class="text-3xl md:text-4xl font-black uppercase text-white tracking-tighter">
           Instituciones <span class="text-primary italic">Afiliadas</span>
@@ -43,25 +43,27 @@
         <div class="h-1.5 w-20 bg-primary mt-4 rounded-full"></div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <div class="bg-white/[0.02] border border-white/5 rounded-[3rem] p-8 md:p-12 backdrop-blur-sm shadow-2xl">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-8">
 
-        <div *ngFor="let equipo of equipos"
-          class="group flex flex-col items-center gap-6 p-4 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500">
+          <div *ngFor="let equipo of equipos"
+            class="group flex flex-col items-center gap-4 p-4 rounded-[2rem] hover:bg-white/[0.03] transition-all duration-500">
 
-          <div
-            class="aspect-square w-full flex items-center justify-center p-4 bg-slate-900/50 rounded-[2rem] shadow-inner">
-            <img [src]="equipo.logo" [alt]="equipo.nombre"
-              class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+            <div
+              class="aspect-square w-full flex items-center justify-center p-4 bg-slate-950/40 rounded-[1.5rem] border border-white/5 group-hover:border-primary/20 transition-all duration-500">
+              <img [src]="equipo.logo" [alt]="equipo.nombre"
+                class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+            </div>
+
+            <div class="text-center">
+              <span
+                class="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 group-hover:text-white transition-colors leading-tight block">
+                {{ equipo.nombre }}
+              </span>
+            </div>
           </div>
 
-          <div class="px-2 pb-2 h-10 flex items-center justify-center text-center">
-            <span
-              class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-white transition-colors leading-tight">
-              {{ equipo.nombre }}
-            </span>
-          </div>
         </div>
-
       </div>
     </section>
     <section>
