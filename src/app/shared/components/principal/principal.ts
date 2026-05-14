@@ -20,7 +20,14 @@ export class Principal implements OnInit {
   faTiktok = faTiktok;
   faInstagram = faInstagram;
   faLogin = faSignInAlt;
-
+  equipos = [
+    { nombre: 'CIAF', logo: '/img/equipos/CIAF.png' },
+    { nombre: 'Club Atletico Independencia', logo: '/img/equipos/CAI.jpg' },
+    { nombre: 'C.S.D. Universitario 23 de agosto', logo: '/img/equipos/Unju.jpg' },
+    { nombre: 'Club Sportivo Rivadavia', logo: '/img/equipos/Rivadavia.png' },
+    { nombre: 'Minas Handball', logo: '/img/equipos/minasHandball.png' },
+    { nombre: 'Vida en Accion', logo: '/img/equipos/VEA.png' },
+  ];
   ultimasFotos: any[] = [];
 
   ngOnInit() {

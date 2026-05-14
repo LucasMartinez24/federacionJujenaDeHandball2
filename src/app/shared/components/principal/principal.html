@@ -35,11 +35,38 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-20 space-y-32">
+    <section class="space-y-12">
+      <div class="text-center">
+        <h2 class="text-3xl font-black uppercase text-white tracking-tighter">Instituciones Afiliadas</h2>
+        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">El motor del handball en nuestra
+          provincia</p>
+        <div class="h-1 w-12 bg-primary mx-auto mt-4 rounded-full"></div>
+      </div>
 
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+
+        <div *ngFor="let equipo of equipos"
+          class="group relative aspect-square bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center p-6 hover:bg-primary/10 hover:border-primary/30 transition-all duration-500 cursor-default">
+
+          <div
+            class="size-20 md:size-24 flex items-center justify-center grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500">
+            <img [src]="equipo.logo" [alt]="equipo.nombre" class="w-full h-full object-contain">
+          </div>
+
+          <div
+            class="absolute inset-0 bg-slate-950/90 rounded-[2.5rem] flex items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span class="text-[10px] font-black uppercase tracking-widest text-white text-center leading-tight">
+              {{ equipo.nombre }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </section>
     <section>
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
         <div>
-          <h2 class="text-3xl font-black uppercase text-white tracking-tighter">Últimas Novedades</h2>
+          <h2 class="text-3xl font-black uppercase text-white tracking-tighter">Últimas Fotos</h2>
           <div class="h-1 w-12 bg-primary mt-3 rounded-full"></div>
         </div>
 
