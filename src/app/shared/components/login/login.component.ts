@@ -31,6 +31,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.userRole = this.authService.getCurrentUser()?.role ?? null;
   }
 
   initializeForm(): void {
@@ -43,7 +44,7 @@ export class LoginComponent implements OnInit {
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
-
+  userRole: string | null = null;
   onSubmit(): void {
     if (this.loginForm.invalid) {
       return;
