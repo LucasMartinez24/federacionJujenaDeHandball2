@@ -11,19 +11,16 @@
       © 2026 San Salvador de Jujuy, Jujuy, Argentina.
     </div>
   </div>
-  <button *ngIf="!userRole" routerLink="/Principal"
-    class="group flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer">
-    <span
-      class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors text-sm">arrow_back</span>
-    <span class="text-[9px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white">Volver al
-      Inicio</span>
-  </button>
+
   <div class="w-full lg:w-1/2 flex flex-col justify-center bg-background-dark px-6 sm:px-12 md:px-20 lg:px-24">
-    <div class="flex items-center justify-between mb-8 lg:hidden">
-      <div class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-        <span class="material-symbols-outlined">sports_handball</span>
-      </div>
-      <h2 class="text-white text-lg font-bold">Federación Jujeña de Handball</h2>
+
+    <div class="mb-12">
+      <button routerLink="/"
+        class="group flex items-center gap-2 text-gray-500 hover:text-white transition-all cursor-pointer">
+        <span
+          class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        <span class="text-[10px] font-black uppercase tracking-[0.2em]">Volver a la página principal</span>
+      </button>
     </div>
 
     <div class="mb-10 text-left">
@@ -64,7 +61,6 @@
       <div *ngIf="error" class="mt-4 p-3 bg-red-900/30 text-red-400 rounded-lg text-sm">
         {{ error }}
       </div>
-
     </form>
   </div>
 </div>
