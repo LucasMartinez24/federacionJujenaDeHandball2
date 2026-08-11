@@ -105,40 +105,81 @@
     </section>
 
     <!-- SECCIÓN SPONSORS OFICIALES (LOGOS GRANDES, FOTOS NÍTIDAS Y WAXOLA EN BLANCO) -->
-    <section class="bg-slate-900/20 border border-white/5 rounded-[4rem] p-16 text-center backdrop-blur-md">
-      <h3 class="text-slate-500 font-black uppercase tracking-[0.6em] text-[10px] mb-16">
+    <section
+      class="bg-slate-900/20 border border-white/5 rounded-3xl md:rounded-[4rem] p-6 sm:p-10 md:p-16 text-center backdrop-blur-md">
+      <h3 class="text-slate-500 font-black uppercase tracking-[0.6em] text-[10px] mb-8 md:mb-16">
         Sponsors Oficiales
       </h3>
 
-      <!-- Contenedor flexible con alturas generosas para que los logos se vean GRANDES -->
-      <div class="flex flex-col sm:flex-row justify-center items-center gap-16 md:gap-28 max-w-6xl mx-auto">
+      <!-- Flex responsivo: 2 cols en móvil, 4 en md+ con segunda fila centrada -->
+      <div
+        class="flex flex-wrap justify-center gap-8 sm:gap-10 md:gap-12 max-w-5xl mx-auto items-center">
 
         <!-- SPONSOR 1: KEMPA -->
-        <div class="group relative flex items-center justify-center">
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
           <img src="/img/kempa.webp"
-            class="h-20 md:h-28 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
             alt="Kempa">
           <div
             class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           </div>
         </div>
 
-        <!-- SPONSOR 2: WAXOLA (Letras transformadas a Blanco Puro con Invert y Brightness) -->
-        <div class="group relative flex items-center justify-center">
+        <!-- SPONSOR 2: WAXOLA -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
           <img src="/img/WAXOLA.png"
-            class="h-20 md:h-28 object-contain invert brightness-200 opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
+            class="h-24 sm:h-32 md:h-40 object-contain invert brightness-200 opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
             alt="WAXOLA">
-          <!-- Resplandor blanco sutil de fondo que acompaña al logo blanco -->
           <div
             class="absolute inset-0 bg-white/[0.03] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           </div>
         </div>
 
-        <!-- SPONSOR 3: CONSULTORIO (Grande, nítido y con bordes estilizados) -->
-        <div class="group relative flex items-center justify-center">
+        <!-- SPONSOR 3: CONSULTORIO -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
           <img src="/img/Consultorio.jpeg"
-            class="h-50 md:h-50 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out rounded-2xl shadow-lg"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out rounded-xl shadow-lg"
             alt="Consultorio">
+          <div
+            class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          </div>
+        </div>
+
+        <!-- SPONSOR 4: YPF -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
+          <img src="/img/ypf.png"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out rounded-xl shadow-lg"
+            alt="ypf">
+          <div
+            class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          </div>
+        </div>
+
+        <!-- SPONSOR 5: GRAN MONARCA -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
+          <img src="/img/granmonarca.png"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale invert shadow-none drop-shadow-none group-hover:grayscale-0 group-hover:invert-0 group-hover:opacity-100 group-hover:scale-105 group-hover:shadow-lg transition-all duration-500 ease-out rounded-xl"
+            alt="granmonarca">
+          <div
+            class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          </div>
+        </div>
+
+        <!-- SPONSOR 6: SUSHI EXPRESS -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
+          <img src="/img/sushiExpress.jpeg"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out rounded-xl shadow-lg"
+            alt="sushiExpress">
+          <div
+            class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          </div>
+        </div>
+
+        <!-- SPONSOR 7: MUEBLES -->
+        <div class="group relative flex items-center justify-center w-[calc(50%-1rem)] md:w-[calc(25%-2.25rem)]">
+          <img src="/img/muebles.png"
+            class="h-24 sm:h-32 md:h-40 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out rounded-xl shadow-lg"
+            alt="muebles">
           <div
             class="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           </div>
