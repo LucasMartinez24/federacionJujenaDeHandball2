@@ -36,6 +36,7 @@ export class FixtureManagement implements OnInit {
 
   showScoreModal = false;
   modoLectura = false;
+  planillaObligatoria = true;
   partidoSeleccionado: any = null;
   showInvitadoModal = false;
   equipoInvitado: 'local' | 'visitante' = 'local';
@@ -96,6 +97,7 @@ export class FixtureManagement implements OnInit {
   cargarResultados(partido: any) {
     this.partidoSeleccionado = partido;
     this.modoLectura = partido.estado === 'Finalizado';
+    this.planillaObligatoria = true;
     this.limpiarDatosModal();
     if (this.modoLectura) {
       this.gLocal = partido.golesLocal;
@@ -189,13 +191,7 @@ export class FixtureManagement implements OnInit {
   }
 
   confirmarResultado(): void {
-    const sumaGLocal = this.jugadoresLocal.reduce((acc, j) => acc + (j.goles || 0), 0);
-    const sumaGVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + (j.goles || 0), 0);
-
-    if (sumaGLocal !== Number(this.gLocal) || sumaGVisitante !== Number(this.gVisitante)) {
-      toast.error('La suma de goles individuales no coincide');
-      return;
-    }
+    const toNumber = (value: any) => Number(value) || 0;
 
     const planillaFinal = [
       ...this.jugadoresLocal.map((j) => ({
@@ -210,19 +206,35 @@ export class FixtureManagement implements OnInit {
         jugadorId: j.id,
         nombreCompleto: j.nombreCompleto,
       })),
-    ].filter((j) => j.numero > 0 || j.id === null);
+    ].filter((j) => toNumber(j.numero) > 0 || j.id === null);
+
+    if (this.planillaObligatoria) {
+      const sumaGLocal = this.jugadoresLocal.reduce((acc, j) => acc + toNumber(j.goles), 0);
+      const sumaGVisitante = this.jugadoresVisitante.reduce((acc, j) => acc + toNumber(j.goles), 0);
+      const tieneGolesIndividuales =
+        this.jugadoresLocal.some((j) => toNumber(j.goles) > 0) ||
+        this.jugadoresVisitante.some((j) => toNumber(j.goles) > 0);
+
+      if (
+        tieneGolesIndividuales &&
+        (sumaGLocal !== toNumber(this.gLocal) || sumaGVisitante !== toNumber(this.gVisitante))
+      ) {
+        toast.error('La suma de goles individuales no coincide');
+        return;
+      }
+    }
 
     this.partidosService
       .updateResultado(this.partidoSeleccionado.id, {
-        golesLocal: this.gLocal,
-        golesVisitante: this.gVisitante,
-        golesLocalHT: this.htLocal,
-        golesVisitanteHT: this.htVisitante,
+        golesLocal: toNumber(this.gLocal),
+        golesVisitante: toNumber(this.gVisitante),
+        golesLocalHT: toNumber(this.htLocal),
+        golesVisitanteHT: toNumber(this.htVisitante),
         arbitro1: this.arbitro1,
         arbitro2: this.arbitro2,
         cronometrista: this.cronometrista,
         observaciones: this.observaciones,
-        detallesJugadores: planillaFinal,
+        detallesJugadores: this.planillaObligatoria ? planillaFinal : [],
       })
       .subscribe({
         next: () => {
@@ -230,6 +242,9 @@ export class FixtureManagement implements OnInit {
           this.cargarFixture(this.jornadaSeleccionada);
           this.cargarTabla();
           toast.success('Acta oficializada');
+        },
+        error: (error) => {
+          toast.error(error?.error?.error || 'No se pudo oficializar el acta');
         },
       });
   }
@@ -245,6 +260,7 @@ export class FixtureManagement implements OnInit {
     this.observaciones = '';
     this.jugadoresLocal = [];
     this.jugadoresVisitante = [];
+    this.planillaObligatoria = true;
   }
 
   abrirModalInvitado(equipo: 'local' | 'visitante') {

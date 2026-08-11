@@ -78,7 +78,7 @@
                 <button type="button" (click)="setRama('Mixto')"
                   [ngClass]="torneoForm.get('rama')?.value === 'Mixto' ? 'bg-indigo-600 text-white shadow-lg scale-[1.02]' : 'text-slate-500 hover:bg-white/5'"
                   class="flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all duration-200 cursor-pointer border border-transparent"
-                  [class.border-white|10]="torneoForm.get('rama')?.value === 'Mixto'">
+                  [class.border-white/10]="torneoForm.get('rama')?.value === 'Mixto'">
                   <span class="material-symbols-outlined text-lg">all_inclusive</span>
                   <span class="font-black text-[9px] uppercase tracking-tighter">Mixto</span>
                 </button>
@@ -94,6 +94,95 @@
                 * El sistema determinará automáticamente el estado del torneo según esta fecha.
               </p>
             </div>
+          </div>
+        </section>
+
+        <!-- SECCIÓN FORMATO Y MODALIDAD -->
+        <section
+          class="bg-slate-900/60 border border-white/10 rounded-[3rem] p-8 md:p-10 shadow-2xl backdrop-blur-xl space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 class="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary">account_tree</span>
+              Formato & Modalidad de Juego
+            </h3>
+            <span
+              class="text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5 w-fit">
+              Estructura de Competición
+            </span>
+          </div>
+
+          <!-- Cards de Selección de Formato -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Opción: Liga / Todos contra Todos -->
+            <button type="button" (click)="setFormato('liga')"
+              [ngClass]="torneoForm.get('formato')?.value === 'liga' ? 'border-primary bg-primary/10 shadow-xl shadow-primary/10' : 'border-white/10 bg-slate-950/60 hover:bg-slate-950 hover:border-white/20'"
+              class="relative flex flex-col p-6 rounded-3xl border transition-all duration-300 text-left group cursor-pointer">
+              <div class="flex items-center justify-between mb-4">
+                <div
+                  [ngClass]="torneoForm.get('formato')?.value === 'liga' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400 group-hover:text-white'"
+                  class="size-12 rounded-2xl flex items-center justify-center transition-colors">
+                  <span class="material-symbols-outlined text-2xl">leaderboard</span>
+                </div>
+                <span *ngIf="torneoForm.get('formato')?.value === 'liga'"
+                  class="material-symbols-outlined text-primary text-xl">check_circle</span>
+              </div>
+              <h4 class="text-sm font-black text-white uppercase tracking-tight mb-1">Liga (Todos vs Todos)</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Todos los equipos integran una única tabla de posiciones
+                acumulando puntos.</p>
+            </button>
+
+            <!-- Opción: Grupos + Eliminatorias -->
+            <button type="button" (click)="setFormato('grupos_eliminatorias')"
+              [ngClass]="torneoForm.get('formato')?.value === 'grupos_eliminatorias' ? 'border-primary bg-primary/10 shadow-xl shadow-primary/10' : 'border-white/10 bg-slate-950/60 hover:bg-slate-950 hover:border-white/20'"
+              class="relative flex flex-col p-6 rounded-3xl border transition-all duration-300 text-left group cursor-pointer">
+              <div class="flex items-center justify-between mb-4">
+                <div
+                  [ngClass]="torneoForm.get('formato')?.value === 'grupos_eliminatorias' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400 group-hover:text-white'"
+                  class="size-12 rounded-2xl flex items-center justify-center transition-colors">
+                  <span class="material-symbols-outlined text-2xl">groups</span>
+                </div>
+                <span *ngIf="torneoForm.get('formato')?.value === 'grupos_eliminatorias'"
+                  class="material-symbols-outlined text-primary text-xl">check_circle</span>
+              </div>
+              <h4 class="text-sm font-black text-white uppercase tracking-tight mb-1">Grupos + Playoffs</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Fase por Zonas/Grupos y posterior clasificación a llaves
+                eliminatorias.</p>
+            </button>
+
+            <!-- Opción: Eliminación Directa -->
+            <button type="button" (click)="setFormato('eliminatoria_directa')"
+              [ngClass]="torneoForm.get('formato')?.value === 'eliminatoria_directa' ? 'border-primary bg-primary/10 shadow-xl shadow-primary/10' : 'border-white/10 bg-slate-950/60 hover:bg-slate-950 hover:border-white/20'"
+              class="relative flex flex-col p-6 rounded-3xl border transition-all duration-300 text-left group cursor-pointer">
+              <div class="flex items-center justify-between mb-4">
+                <div
+                  [ngClass]="torneoForm.get('formato')?.value === 'eliminatoria_directa' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400 group-hover:text-white'"
+                  class="size-12 rounded-2xl flex items-center justify-center transition-colors">
+                  <span class="material-symbols-outlined text-2xl">military_tech</span>
+                </div>
+                <span *ngIf="torneoForm.get('formato')?.value === 'eliminatoria_directa'"
+                  class="material-symbols-outlined text-primary text-xl">check_circle</span>
+              </div>
+              <h4 class="text-sm font-black text-white uppercase tracking-tight mb-1">Eliminación Directa</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Cuadro de llaves desde la primera ronda. El perdedor
+                queda eliminado.</p>
+            </button>
+          </div>
+
+          <!-- Opciones adicionales de Modalidad -->
+          <div class="p-6 bg-slate-950/70 border border-white/5 rounded-3xl flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-black text-white uppercase tracking-wider">Modalidad de Partidos</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                {{ torneoForm.get('idaVuelta')?.value ? 'Ida y Vuelta (Encuentros dobles)' : 'Solo Ida (Un único encuentro por cruce)' }}
+              </p>
+            </div>
+            <button type="button" (click)="toggleIdaVuelta()"
+              [ngClass]="torneoForm.get('idaVuelta')?.value ? 'bg-primary' : 'bg-slate-800'"
+              class="relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none">
+              <span
+                [ngClass]="torneoForm.get('idaVuelta')?.value ? 'translate-x-7 bg-white' : 'translate-x-0 bg-slate-400'"
+                class="pointer-events-none inline-block h-6 w-6 transform rounded-full shadow-lg ring-0 transition duration-300 ease-in-out"></span>
+            </button>
           </div>
         </section>
 

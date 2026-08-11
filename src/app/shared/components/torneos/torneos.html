@@ -23,6 +23,9 @@
       <button (click)="setFiltro('Upcoming')" [class.bg-primary]="filtroActual === 'Upcoming'"
         [class.text-white]="filtroActual === 'Upcoming'"
         class="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400">Próximos</button>
+      <button (click)="setFiltro('Finalizado')" [class.bg-primary]="filtroActual === 'Finalizado'"
+        [class.text-white]="filtroActual === 'Finalizado'"
+        class="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400">Finalizados</button>
       <button (click)="setFiltro('Archive')" [class.bg-primary]="filtroActual === 'Archive'"
         [class.text-white]="filtroActual === 'Archive'"
         class="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400">Archivo</button>
@@ -51,10 +54,22 @@
       <div *ngFor="let torneo of torneosMostrados"
         class="bg-slate-900 rounded-2xl border border-white/5 overflow-hidden shadow-2xl transition-all hover:border-white/10 group relative">
 
-        <button *ngIf="esAdmin" (click)="confirmarEliminacion(torneo)"
-          class="absolute top-4 right-4 z-10 p-2 cursor-pointer bg-slate-950/50 backdrop-blur-md rounded-lg text-slate-500 hover:text-red-500 transition-colors">
-          <span class="material-symbols-outlined text-xl">delete</span>
-        </button>
+        <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <!-- Botón de Cambio de Estado -->
+          <button *ngIf="puedeGestionar" (click)="abrirCambioEstado(torneo)"
+            title="Cambiar estado del torneo"
+            class="px-3 py-1.5 cursor-pointer bg-slate-950/70 backdrop-blur-md rounded-lg text-white text-xs font-semibold hover:bg-slate-900 border border-white/10 flex items-center gap-1.5 transition-all">
+            <span class="material-symbols-outlined text-base">published_with_changes</span>
+            <span>Estado</span>
+          </button>
+
+          <!-- Botón de Eliminar -->
+          <button *ngIf="esAdmin" (click)="confirmarEliminacion(torneo)"
+            title="Eliminar torneo"
+            class="p-2 cursor-pointer bg-slate-950/50 backdrop-blur-md rounded-lg text-slate-500 hover:text-red-500 transition-colors">
+            <span class="material-symbols-outlined text-xl">delete</span>
+          </button>
+        </div>
 
         <div [class]="'h-32 bg-gradient-to-br p-6 flex items-start justify-between ' + torneo.colorClase">
           <div class="size-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
@@ -64,7 +79,13 @@
 
         <div class="p-6 -mt-10">
           <div class="bg-slate-800 rounded-xl p-4 shadow-xl border border-white/5 mb-4">
-            <h3 class="text-xl font-bold truncate text-white uppercase">{{torneo.nombre}}</h3>
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <h3 class="text-xl font-bold truncate text-white uppercase flex-1">{{torneo.nombre}}</h3>
+              <span [class]="'px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 shrink-0 ' + getEstadoInfo(torneo.estado).clase">
+                <span class="material-symbols-outlined text-xs">{{ getEstadoInfo(torneo.estado).icono }}</span>
+                {{ getEstadoInfo(torneo.estado).label }}
+              </span>
+            </div>
             <p class="text-sm text-primary font-bold tracking-tight">{{torneo.categoria}} - {{torneo.rama}}</p>
           </div>
 
@@ -92,6 +113,7 @@
   </main>
 </div>
 
+<!-- MODAL ELIMINAR -->
 <div *ngIf="showDeleteModal"
   class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
 
@@ -118,6 +140,55 @@
         <button (click)="ejecutarEliminacion()"
           class="flex-1 py-4 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all cursor-pointer">
           Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIO DE ESTADO -->
+<div *ngIf="showEstadoModal"
+  class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+
+  <div (click)="showEstadoModal = false" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+
+  <div
+    class="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+    <div class="flex flex-col items-center text-center">
+      <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+        <span class="material-symbols-outlined text-3xl">published_with_changes</span>
+      </div>
+
+      <h3 class="text-xl font-bold text-white mb-1">Cambiar Estado del Torneo</h3>
+      <p class="text-slate-400 text-sm mb-6">
+        Selecciona el nuevo estado para <span class="text-white font-bold">"{{ torneoACambiarEstado?.nombre }}"</span>.
+      </p>
+
+      <div class="w-full space-y-3 mb-6">
+        <button *ngFor="let estado of estadosDisponibles"
+          (click)="nuevoEstado = estado.valor"
+          [class.border-primary]="nuevoEstado === estado.valor"
+          [class.bg-primary/10]="nuevoEstado === estado.valor"
+          class="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-left cursor-pointer">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-xl text-slate-300">{{ estado.icono }}</span>
+            <div>
+              <p class="text-sm font-bold text-white">{{ estado.label }}</p>
+              <p class="text-xs text-slate-400 font-mono opacity-60">{{ estado.valor }}</p>
+            </div>
+          </div>
+          <span *ngIf="nuevoEstado === estado.valor" class="material-symbols-outlined text-primary text-xl">check_circle</span>
+        </button>
+      </div>
+
+      <div class="flex w-full gap-4">
+        <button (click)="showEstadoModal = false"
+          class="flex-1 py-3.5 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all cursor-pointer">
+          Cancelar
+        </button>
+        <button (click)="ejecutarCambioEstado()"
+          class="flex-1 py-3.5 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all cursor-pointer">
+          Guardar Estado
         </button>
       </div>
     </div>

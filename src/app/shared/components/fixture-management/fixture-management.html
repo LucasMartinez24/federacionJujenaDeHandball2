@@ -303,7 +303,19 @@
             class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-slate-200 h-20 md:h-24 resize-none outline-none"></textarea>
         </div>
 
-        <div class="flex gap-4 w-full lg:w-[450px]">
+        <div class="flex flex-col gap-4 w-full lg:w-[450px]">
+          <label *ngIf="!modoLectura"
+            class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 cursor-pointer select-none">
+            <div class="flex flex-col">
+              <span class="text-[10px] md:text-xs font-black uppercase text-white">Planilla obligatoria</span>
+              <span class="text-[8px] md:text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                Si se desactiva, se oficializa solo el resultado
+              </span>
+            </div>
+            <input type="checkbox" [(ngModel)]="planillaObligatoria"
+              class="size-5 accent-primary cursor-pointer shrink-0">
+          </label>
+
           <ng-container *ngIf="!modoLectura; else cerradoTemplate">
             <button (click)="confirmarResultado()"
               class="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] md:text-xs shadow-2xl active:scale-95 transition-all cursor-pointer">

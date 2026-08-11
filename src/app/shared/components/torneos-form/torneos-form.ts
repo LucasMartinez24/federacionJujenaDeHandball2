@@ -40,6 +40,8 @@ export class TorneosForm implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(5)]],
       categoria: ['Primera División', Validators.required],
       rama: ['Masculino', Validators.required],
+      formato: ['liga', Validators.required],
+      idaVuelta: [false],
       fechaInicio: ['', Validators.required],
       colorClase: [this.themes[0].class, Validators.required],
       progreso: [0],
@@ -53,7 +55,11 @@ export class TorneosForm implements OnInit {
       this.loading = true;
       this.torneosService.getTorneoById(this.torneoId).subscribe({
         next: (torneo) => {
-          this.torneoForm.patchValue(torneo);
+          this.torneoForm.patchValue({
+            ...torneo,
+            formato: torneo.formato || 'liga',
+            idaVuelta: torneo.idaVuelta ?? false,
+          });
           this.loading = false;
         },
         error: () => {
@@ -66,6 +72,15 @@ export class TorneosForm implements OnInit {
 
   setRama(rama: string): void {
     this.torneoForm.patchValue({ rama });
+  }
+
+  setFormato(formato: string): void {
+    this.torneoForm.patchValue({ formato });
+  }
+
+  toggleIdaVuelta(): void {
+    const actual = this.torneoForm.get('idaVuelta')?.value;
+    this.torneoForm.patchValue({ idaVuelta: !actual });
   }
 
   setTheme(themeClass: string): void {
@@ -91,8 +106,7 @@ export class TorneosForm implements OnInit {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    // 2. Lógica de estado automática (asegúrate que estos strings coincidan con tu ENUM de Prisma)
-    // Normalmente en tu base de datos son: "Upcoming", "In Progress", "Completed"
+    // 2. Lógica de estado automática
     const estadoCalculado = fechaSeleccionada <= hoy ? 'In Progress' : 'Upcoming';
 
     // 3. Construcción del objeto final (Payload)
@@ -100,14 +114,12 @@ export class TorneosForm implements OnInit {
       nombre: this.torneoForm.value.nombre,
       categoria: this.torneoForm.value.categoria,
       rama: this.torneoForm.value.rama,
-      fechaInicio: fechaSeleccionada.toISOString(), // Enviamos formato ISO estándar
+      fechaInicio: fechaSeleccionada.toISOString(),
       colorClase: this.torneoForm.value.colorClase,
       estado: estadoCalculado,
       progreso: 0,
-      // Si tu backend espera formato e idaVuelta aunque los hayamos quitado de la vista,
-      // mándalos por defecto para evitar el error 500:
-      formato: 'league',
-      idaVuelta: false,
+      formato: this.torneoForm.value.formato || 'liga',
+      idaVuelta: Boolean(this.torneoForm.value.idaVuelta),
     };
 
     const request = this.isEditMode
