@@ -103,11 +103,11 @@
           <tbody class="divide-y divide-slate-800/50">
             <tr *ngFor="let jugador of jugadoresFiltrados"
               class="hover:bg-slate-800/20 transition-colors group relative"
-              [ngClass]="{'border-l-4 border-amber-500/50 bg-amber-500/[0.02]': jugador.estado === 'Pendiente' || !jugador.estado}">
+              [ngClass]="{'border-l-4 border-amber-500/50 bg-amber-500/2': jugador.estado === 'Pendiente' || !jugador.estado}">
 
               <td class="px-4 md:px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <p class="text-sm font-bold text-white truncate max-w-[130px] sm:max-w-none">{{
+                  <p class="text-sm font-bold text-white truncate max-w-32 sm:max-w-none">{{
                     jugador.nombreCompleto }}</p>
                 </div>
               </td>
@@ -131,6 +131,11 @@
                     class="p-2 text-slate-400 hover:text-primary transition-colors">
                     <span class="material-symbols-outlined text-xl md:text-lg">edit_square</span>
                   </button>
+                  <button *ngIf="isAdmin" [routerLink]="['/jugador-form', jugador.id]"
+                    [queryParams]="{ operation: 'PRESTAMO', edit: 'true' }"
+                    class="p-2 text-slate-400 hover:text-amber-400 transition-colors" title="Movimiento">
+                    <span class="material-symbols-outlined text-xl md:text-lg">swap_horiz</span>
+                  </button>
                   <button (click)="confirmDelete(jugador)" class="p-1 text-slate-400 hover:text-red-500">
                     <span class="material-symbols-outlined text-xl md:text-lg">delete</span>
                   </button>
@@ -151,7 +156,7 @@
 </div>
 
 <div *ngIf="showDeleteModal"
-  class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+  class="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
   <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl scale-in">
     <div class="flex flex-col items-center text-center">
       <div class="size-14 md:size-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">

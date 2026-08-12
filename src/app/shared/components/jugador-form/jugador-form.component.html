@@ -53,8 +53,8 @@
               </label>
               <label class="flex flex-col">
                 <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Fecha de Nacimiento</span>
-                <input class="form-input-custom [color-scheme:dark]" type="date" name="birthDate"
-                  [(ngModel)]="birthDate" (ngModelChange)="onDateChange($event)">
+                <input class="form-input-custom scheme-dark" type="date" name="birthDate" [(ngModel)]="birthDate"
+                  (ngModelChange)="onDateChange($event)">
               </label>
               <label class="flex flex-col">
                 <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Género</span>
@@ -247,8 +247,108 @@
             </div>
           </section>
 
+          <section *ngIf="isEditMode && isAdmin"
+            class="p-6 bg-slate-900/50 border border-slate-800 rounded-3xl shadow-xl">
+            <div class="flex items-center gap-2 mb-6 border-l-4 border-amber-500 pl-3">
+              <span class="material-symbols-outlined text-amber-400 text-xl">swap_horiz</span>
+              <h3 class="font-bold text-slate-100 uppercase text-sm tracking-widest">Movimiento Federativo</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <label class="flex flex-col">
+                <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Tipo de Operación</span>
+                <select class="form-input-custom" name="modoMovimiento" [(ngModel)]="modoMovimiento">
+                  <option value="PRESTAMO">Préstamo</option>
+                  <option value="PASE">Pase definitivo</option>
+                </select>
+              </label>
+
+              <label class="flex flex-col">
+                <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Club destino</span>
+                <select class="form-input-custom" name="clubDestinoId" [(ngModel)]="clubDestinoId">
+                  <option value="">Seleccionar club</option>
+                  <option *ngFor="let club of clubesDestinoDisponibles" [value]="club.id">{{ club.nombre }}</option>
+                </select>
+              </label>
+
+              <label *ngIf="modoMovimiento === 'PRESTAMO'" class="flex flex-col">
+                <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Meses de préstamo</span>
+                <input class="form-input-custom" type="number" min="1" name="mesesPrestamo" [(ngModel)]="mesesPrestamo">
+              </label>
+
+              <label class="flex flex-col md:col-span-2">
+                <span class="text-[10px] font-black text-slate-500 uppercase mb-2 ml-1">Observaciones</span>
+                <textarea class="form-input-custom min-h-24 resize-none" name="observacionesMovimiento"
+                  [(ngModel)]="observacionesMovimiento"
+                  placeholder="Detalles del movimiento, condiciones o notas internas"></textarea>
+              </label>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-5">
+              <button type="button" (click)="registrarMovimiento()"
+                class="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-sm hover:bg-amber-400 transition-all active:scale-95">
+                {{ etiquetaMovimiento }}
+              </button>
+              <button *ngIf="movimientoActivo" type="button" (click)="devolverPrestamo()"
+                class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm hover:bg-slate-700 transition-all">
+                Devolver préstamo activo
+              </button>
+            </div>
+
+            <div *ngIf="movimientoActivo" class="mt-5 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+              <p class="text-[10px] uppercase tracking-widest text-amber-400 font-black mb-2">Préstamo activo</p>
+              <p class="text-sm text-slate-200">
+                {{ movimientoActivo.clubOrigen?.nombre }} → {{ movimientoActivo.clubDestino?.nombre }}
+              </p>
+              <p class="text-[11px] text-slate-500 mt-1">
+                Vence el {{ movimientoActivo.fechaFin | date:'dd/MM/yyyy' }}
+              </p>
+            </div>
+          </section>
+
+          <section *ngIf="isEditMode && isAdmin"
+            class="p-6 bg-slate-900/50 border border-slate-800 rounded-3xl shadow-xl">
+            <div class="flex items-center gap-2 mb-6 border-l-4 border-slate-500 pl-3">
+              <span class="material-symbols-outlined text-slate-400 text-xl">history</span>
+              <h3 class="font-bold text-slate-100 uppercase text-sm tracking-widest">Historial de Movimientos</h3>
+            </div>
+
+            <div *ngIf="cargandoMovimientos" class="text-sm text-slate-500">Cargando historial...</div>
+
+            <div *ngIf="!cargandoMovimientos && movimientosJugador.length === 0"
+              class="text-sm text-slate-500 border border-dashed border-slate-800 rounded-2xl p-4">
+              Todavía no hay movimientos registrados.
+            </div>
+
+            <div *ngIf="!cargandoMovimientos && movimientosJugador.length > 0" class="space-y-3">
+              <div *ngFor="let movimiento of movimientosJugador"
+                class="p-4 rounded-2xl border border-slate-800 bg-slate-950/40">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <p class="text-sm font-bold text-white">{{ movimiento.tipo === 'PASE' ? 'Pase definitivo' :
+                      'Préstamo' }}</p>
+                    <p class="text-[11px] text-slate-500">
+                      {{ movimiento.clubOrigen?.nombre }} → {{ movimiento.clubDestino?.nombre }}
+                    </p>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+                    [ngClass]="movimiento.estado === 'Activo' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'">
+                    {{ movimiento.estado }}
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-3">
+                  Inicio: {{ movimiento.fechaInicio | date:'dd/MM/yyyy' }}
+                  <span *ngIf="movimiento.fechaFin"> · Fin: {{ movimiento.fechaFin | date:'dd/MM/yyyy' }}</span>
+                </p>
+                <p *ngIf="movimiento.observaciones" class="text-[11px] text-slate-400 mt-2">
+                  {{ movimiento.observaciones }}
+                </p>
+              </div>
+            </div>
+          </section>
+
           <div *ngIf="mostrarSelectorEspecial"
-            class="p-5 bg-amber-500/10 rounded-[2rem] text-amber-200 border border-amber-500/20 shadow-xl animate-in slide-in-from-right">
+            class="p-5 bg-amber-500/10 rounded-4xl text-amber-200 border border-amber-500/20 shadow-xl animate-in slide-in-from-right">
             <div class="flex items-start gap-3">
               <span class="material-symbols-outlined text-amber-500">workspace_premium</span>
               <div>

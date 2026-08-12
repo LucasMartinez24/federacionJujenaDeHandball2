@@ -22,6 +22,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   clubNombre: string = '';
   clubId: string | null = null;
+  isAdmin: boolean = false;
   jugadores: Jugador[] = [];
   isLoading: boolean = false;
   searchText: string = '';
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (user) {
           this.clubNombre = user.nombre || user.username || 'Mi Club';
           this.clubId = (user.clubId ?? user.club?.id ?? user.id ?? null) as string | null;
+          this.isAdmin = user.role === 'admin' || this.authService.isAdmin();
           this.loadJugadores();
           this.cdr.detectChanges();
         }

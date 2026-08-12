@@ -24,6 +24,29 @@ export interface Jugador {
   anio?: string; // Cambiamos a string si así lo tenías antes, o number si prefieres
 }
 
+export interface MovimientoJugador {
+  id: string;
+  jugadorId: string;
+  clubOrigenId: string;
+  clubDestinoId: string;
+  tipo: 'PRESTAMO' | 'PASE' | string;
+  estado: string;
+  duracionMeses?: number | null;
+  fechaInicio: string;
+  fechaFin?: string | null;
+  fechaCierre?: string | null;
+  observaciones?: string | null;
+  createdAt: string;
+  clubOrigen?: { id: string; nombre: string; siglas: string };
+  clubDestino?: { id: string; nombre: string; siglas: string };
+}
+
+export interface MovimientoJugadorPayload {
+  clubDestinoId: string;
+  meses?: number;
+  observaciones?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -94,5 +117,21 @@ export class JugadoresService {
   // En jugadores.service.ts
   getJugadorById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  getMovimientosJugador(id: string): Observable<MovimientoJugador[]> {
+    return this.http.get<MovimientoJugador[]>(`${this.apiUrl}/${id}/movimientos`);
+  }
+
+  registrarPrestamo(id: string, payload: MovimientoJugadorPayload): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/prestamo`, payload);
+  }
+
+  registrarPase(id: string, payload: MovimientoJugadorPayload): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/pase`, payload);
+  }
+
+  devolverPrestamo(id: string, payload?: { observaciones?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/devolver-prestamo`, payload || {});
   }
 }

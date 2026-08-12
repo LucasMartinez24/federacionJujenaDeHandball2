@@ -2,10 +2,11 @@ import { Component, inject, OnInit, ChangeDetectorRef, HostListener } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { JugadoresService } from '../../../core/services/jugadores.service';
-import { ClubesService } from '../../../core/services/clubes.service';
+import { JugadoresService, MovimientoJugador } from '../../../core/services/jugadores.service';
+import { Club, ClubesService } from '../../../core/services/clubes.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toast } from 'ngx-sonner';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-jugador-form',
@@ -21,6 +22,7 @@ export class JugadorFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  private sub = new Subscription();
 
   windowWidth = window.innerWidth;
   @HostListener('window:resize') onResize() {
@@ -30,6 +32,7 @@ export class JugadorFormComponent implements OnInit {
   isEditMode = false;
   jugadorId: string | null = null;
   errorMessage = '';
+  isAdmin = false;
 
   jugadorData: any = {
     dni: '',
@@ -55,6 +58,14 @@ export class JugadorFormComponent implements OnInit {
   opcionesCategoriaEspecial: string[] = [];
   selectedHand = 'Derecha';
   clubNombre = 'Cargando club...';
+  modoMovimiento: 'PRESTAMO' | 'PASE' = 'PRESTAMO';
+  clubesDisponibles: Club[] = [];
+  movimientosJugador: MovimientoJugador[] = [];
+  movimientoActivo: MovimientoJugador | null = null;
+  clubDestinoId = '';
+  mesesPrestamo = 1;
+  observacionesMovimiento = '';
+  cargandoMovimientos = false;
 
   fileNames = { fichaMedica: '', autorizacionPadres: '', fichaJugador: '' };
   files = {
@@ -64,17 +75,35 @@ export class JugadorFormComponent implements OnInit {
   };
 
   ngOnInit() {
+    this.isAdmin = this.auth.isAdmin();
+
     this.jugadorId = this.route.snapshot.paramMap.get('id');
-    this.route.queryParams.subscribe((params) => {
-      if (params['clubId']) {
-        this.jugadorData.clubId = params['clubId'];
-        this.buscarNombreClub(params['clubId']);
-      }
-      if (params['edit'] === 'true' && this.jugadorId) {
-        this.isEditMode = true;
-        this.cargarDatosJugador(this.jugadorId);
-      }
-    });
+    this.sub.add(
+      this.route.queryParams.subscribe((params) => {
+        if (params['clubId']) {
+          this.jugadorData.clubId = params['clubId'];
+          this.buscarNombreClub(params['clubId']);
+        }
+        if (params['operation'] === 'PASE' || params['operation'] === 'pase') {
+          this.modoMovimiento = 'PASE';
+        }
+        if (params['operation'] === 'PRESTAMO' || params['operation'] === 'prestamo') {
+          this.modoMovimiento = 'PRESTAMO';
+        }
+        if (params['edit'] === 'true' && this.jugadorId) {
+          this.isEditMode = true;
+          this.cargarDatosJugador(this.jugadorId);
+        }
+        this.cdr.detectChanges();
+      }),
+    );
+
+    this.sub.add(
+      this.clubesService.getClubes().subscribe((clubes) => {
+        this.clubesDisponibles = clubes;
+        this.cdr.detectChanges();
+      }),
+    );
 
     if (!this.jugadorData.clubId) {
       this.jugadorData.clubId = this.auth.getId();
@@ -91,16 +120,21 @@ export class JugadorFormComponent implements OnInit {
   }
 
   cargarDatosJugador(id: string) {
-    this.jugadoresService.getJugadorById(id).subscribe({
-      next: (j) => {
-        if (j) this.poblarFormulario(j);
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.errorMessage = 'Error al conectar con el servidor.';
-        this.cdr.detectChanges();
-      },
-    });
+    this.sub.add(
+      this.jugadoresService.getJugadorById(id).subscribe({
+        next: (j) => {
+          if (j) {
+            this.poblarFormulario(j);
+            this.cargarMovimientosJugador(id);
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.errorMessage = 'Error al conectar con el servidor.';
+          this.cdr.detectChanges();
+        },
+      }),
+    );
   }
 
   poblarFormulario(j: any) {
@@ -129,6 +163,102 @@ export class JugadorFormComponent implements OnInit {
     if (j.fichaMedicaUrl) this.fileNames.fichaMedica = 'Archivo guardado';
     if (j.autorizacionUrl) this.fileNames.autorizacionPadres = 'Archivo guardado';
     if (j.fichaJugadorUrl) this.fileNames.fichaJugador = 'Archivo guardado';
+  }
+
+  cargarMovimientosJugador(id: string) {
+    if (!this.isAdmin) return;
+
+    this.cargandoMovimientos = true;
+    this.sub.add(
+      this.jugadoresService.getMovimientosJugador(id).subscribe({
+        next: (movimientos) => {
+          this.movimientosJugador = movimientos;
+          this.movimientoActivo =
+            movimientos.find(
+              (movimiento) => movimiento.tipo === 'PRESTAMO' && movimiento.estado === 'Activo',
+            ) || null;
+          this.cargandoMovimientos = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.cargandoMovimientos = false;
+          this.cdr.detectChanges();
+        },
+      }),
+    );
+  }
+
+  get clubesDestinoDisponibles(): Club[] {
+    return this.clubesDisponibles.filter((club) => club.id !== this.jugadorData.clubId);
+  }
+
+  get etiquetaMovimiento(): string {
+    return this.modoMovimiento === 'PASE' ? 'Registrar pase' : 'Registrar préstamo';
+  }
+
+  registrarMovimiento() {
+    if (!this.isEditMode || !this.jugadorId) {
+      this.errorMessage = 'Primero guarda el jugador antes de registrar un movimiento.';
+      return;
+    }
+
+    if (!this.clubDestinoId) {
+      this.errorMessage = 'Debes elegir un club destino.';
+      return;
+    }
+
+    if (this.modoMovimiento === 'PRESTAMO' && (!this.mesesPrestamo || this.mesesPrestamo <= 0)) {
+      this.errorMessage = 'Indica la cantidad de meses del préstamo.';
+      return;
+    }
+
+    const payload = {
+      clubDestinoId: this.clubDestinoId,
+      meses: this.modoMovimiento === 'PRESTAMO' ? Number(this.mesesPrestamo) : undefined,
+      observaciones: this.observacionesMovimiento || undefined,
+    };
+
+    const request =
+      this.modoMovimiento === 'PASE'
+        ? this.jugadoresService.registrarPase(this.jugadorId, payload)
+        : this.jugadoresService.registrarPrestamo(this.jugadorId, payload);
+
+    request.subscribe({
+      next: () => {
+        toast.success(this.modoMovimiento === 'PASE' ? 'Pase registrado' : 'Préstamo registrado');
+        this.observacionesMovimiento = '';
+        this.clubDestinoId = '';
+        if (this.jugadorId) {
+          this.cargarDatosJugador(this.jugadorId);
+        }
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'No se pudo registrar el movimiento';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  devolverPrestamo() {
+    if (!this.jugadorId) return;
+
+    this.jugadoresService
+      .devolverPrestamo(this.jugadorId, {
+        observaciones: this.observacionesMovimiento || undefined,
+      })
+      .subscribe({
+        next: () => {
+          toast.success('Préstamo devuelto');
+          this.observacionesMovimiento = '';
+          if (this.jugadorId) {
+            this.cargarDatosJugador(this.jugadorId);
+          }
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'No se pudo devolver el préstamo';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   soloNumeros(event: KeyboardEvent) {
@@ -250,5 +380,9 @@ export class JugadorFormComponent implements OnInit {
   onHandChange(hand: string) {
     this.selectedHand = hand;
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 }
